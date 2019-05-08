@@ -1,0 +1,10 @@
+---Old properties from SMF state machine
+
+---Discovery may only complete after discovery was initiated
+---LTLSPEC nrf_discover_completed -> O(nrf_discover_requested);
+
+---The state can only change to chf_selected once one of the methods has succeeded
+---LTLSPEC has_charging_identifier -> (pcf_provides_address | udm_provides_characteristics | nrf_discover_good | has_local_CHF_charactaristics)
+
+---If a PDU init happens, we will always eventually get the CHF identifier (deliberately has counterexample)
+---LTLSPEC incoming_pdu_init -> F(has_charging_identifier);

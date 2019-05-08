@@ -1,0 +1,75 @@
+MODULE main
+
+VAR
+
+
+------------------- Environment and State variables --------------------
+cell_info_stored_for_PLMN	:	boolean;	
+
+----------------- Sequence numbers -------------------
+
+---------------- state for UE state machine ----------------
+
+ue_state	:
+{
+	init_state,
+	initial_cell_selection,
+	stored_info_cell_selection
+};
+------------ Possible UE actions ----------------
+
+ue_action	:
+{
+	ue_null_action
+};
+
+
+DEFINE
+
+-----------------UE transitions --------------------
+start_T1	:=	 (ue_state = init_state & 
+                        cell_info_stored_for_PLMN
+                    )	;
+start_T2	:=	 (ue_state = init_state & 
+                        !cell_info_stored_for_PLMN
+                    )	;
+
+------------------- Noisy Channels --------------------
+
+------------------- Adversary enabled or not --------------------
+
+
+ASSIGN
+
+
+------------------- Adversarial state machines --------------------
+
+
+---------------UE state machine ------------------
+
+init(ue_state)	:=init_state;
+
+next(ue_state)	:=	 case
+
+(start_T1 )	:	stored_info_cell_selection	;
+TRUE	:	ue_state	;
+esac	;
+
+
+init(ue_action)	:= ue_null_action	;
+
+next(ue_action)	:=	 case
+
+TRUE	:	ue_null_action	;
+esac	;
+
+---Old properties from SMF state machine
+
+---Discovery may only complete after discovery was initiated
+---LTLSPEC nrf_discover_completed -> O(nrf_discover_requested);
+
+---The state can only change to chf_selected once one of the methods has succeeded
+---LTLSPEC has_charging_identifier -> (pcf_provides_address | udm_provides_characteristics | nrf_discover_good | has_local_CHF_charactaristics)
+
+---If a PDU init happens, we will always eventually get the CHF identifier (deliberately has counterexample)
+---LTLSPEC incoming_pdu_init -> F(has_charging_identifier);

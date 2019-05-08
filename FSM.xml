@@ -1,0 +1,63 @@
+<system label="5G">
+
+    <VARS>
+        <VAR label="cell_info_stored_for_PLMN">
+            <datatype>boolean</datatype>
+            <controltype>environment</controltype>
+            <initialvalue>FALSE</initialvalue>
+        </VAR>
+    </VARS>
+
+    <FSMs>
+        <FSM label="UE">
+
+            <states>
+                <state>init_state</state>
+                <state>initial_cell_selection</state>
+                <state>stored_info_cell_selection</state>
+            </states>
+
+            <init_state>init_state</init_state>
+
+            <transitions>
+                <transition label="start_T1">
+                    <start>init_state</start>
+                    <end>stored_info_cell_selection</end>
+
+                    <condition>
+                        cell_info_stored_for_PLMN
+                    </condition>
+
+                    <actions>
+                        <action label="">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="start_T2">
+                    <start>init_state</start>
+                    <end />
+
+                    <condition>
+                        !cell_info_stored_for_PLMN
+                    </condition>
+
+                    <actions>
+                        <action label="">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+            </transitions>
+
+        </FSM>
+    </FSMs>
+
+</system>

@@ -1,0 +1,15 @@
+digraph UE{
+rankdir = LR;
+size = "8,5"
+node [shape = circle, label="init_state"]init_state;
+node [shape = circle, label="initial_cell_selection"]initial_cell_selection;
+node [shape = circle, label="stored_info_cell_selection"]stored_info_cell_selection;
+init_state -> stored_info_cell_selection [label = "start_T1: 
+                        cell_info_stored_for_PLMN
+                    /
+"]
+init_state -> None [label = "start_T2: 
+                        !cell_info_stored_for_PLMN
+                    /
+"]
+}
