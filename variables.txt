@@ -1,0 +1,17 @@
+new_PLMN_selected - state
+
+has_cell_info - state
+    
+RF_scan_started - state
+
+RF_scan_completed - state
+
+find_cell_started - state
+
+find_cell_completed - state
+
+found_suitable_cell - environment
+
+monitoring_paging_channel - state
+
+cell_reevaluation_started - state

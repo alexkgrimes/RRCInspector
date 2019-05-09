@@ -4,7 +4,15 @@ VAR
 
 
 ------------------- Environment and State variables --------------------
-cell_info_stored_for_PLMN	:	boolean;	
+new_PLMN_selected	:	boolean;	
+has_cell_info	:	boolean;	
+RF_scan_started	:	boolean;	
+RF_scan_completed	:	boolean;	
+find_cell_started	:	boolean;	
+find_cell_completed	:	boolean;	
+found_suitable_cell	:	boolean;	
+monitoring_paging_channel	:	boolean;	
+cell_reevaluation_started	:	boolean;	
 
 ----------------- Sequence numbers -------------------
 
@@ -14,13 +22,17 @@ ue_state	:
 {
 	init_state,
 	initial_cell_selection,
-	stored_info_cell_selection
+	stored_info_cell_selection,
+	camped_normally,
+	any_cell_selection
 };
 ------------ Possible UE actions ----------------
 
 ue_action	:
 {
-	ue_null_action
+	ue_null_action,
+	ue_cell_selected_complete,
+	ue_any_cell_operation
 };
 
 
@@ -28,10 +40,28 @@ DEFINE
 
 -----------------UE transitions --------------------
 start_T1	:=	 (ue_state = init_state & 
-                        cell_info_stored_for_PLMN
+                        new_PLMN_selected & has_cell_info
                     )	;
-start_T2	:=	 (ue_state = init_state & 
-                        !cell_info_stored_for_PLMN
+find_T2	:=	 (ue_state = stored_info_cell_selection & 
+                        has_cell_info & find_cell_started
+                    )	;
+stored_T3	:=	 (ue_state = stored_info_cell_selection & 
+                        has_cell_info & find_cell_completed & found_suitable_cell
+                    )	;
+stored_T4	:=	 (ue_state = stored_info_cell_selection & 
+                        has_cell_info & !found_suitable_cell
+                    )	;
+start_T5	:=	 (ue_state = init_state & 
+                        new_PLMN_selected & !has_cell_info
+                    )	;
+find_T6	:=	 (ue_state = initial_cell_selection & 
+                        new_PLMN_selected & !found_suitable_cell & RF_scan_started
+                    )	;
+rf_T7	:=	 (ue_state = initial_cell_selection & 
+                        new_PLMN_selected & RF_scan_completed & found_suitable_cell
+                    )	;
+rf_T8	:=	 (ue_state = initial_cell_selection & 
+                        new_PLMN_selected & RF_scan_completed & !found_suitable_cell
                     )	;
 
 ------------------- Noisy Channels --------------------
@@ -51,7 +81,10 @@ init(ue_state)	:=init_state;
 
 next(ue_state)	:=	 case
 
-(start_T1 )	:	stored_info_cell_selection	;
+(stored_T4 | start_T5 | find_T6 )	:	initial_cell_selection	;
+(start_T1 | find_T2 )	:	stored_info_cell_selection	;
+(stored_T3 | rf_T7 )	:	camped_normally	;
+(rf_T8 )	:	any_cell_selection	;
 TRUE	:	ue_state	;
 esac	;
 
@@ -60,8 +93,75 @@ init(ue_action)	:= ue_null_action	;
 
 next(ue_action)	:=	 case
 
+(start_T1 | find_T2 | stored_T4 | start_T5 | find_T6 )	:	ue_null_action	;
+(stored_T3 | rf_T7 )	:	ue_cell_selected_complete	;
+(rf_T8 )	:	ue_any_cell_operation	;
 TRUE	:	ue_null_action	;
 esac	;
+
+
+init(has_cell_info)	:= FALSE	;
+
+next(has_cell_info)	:=	 case
+(stored_T4 )	:	FALSE	;
+TRUE	:	has_cell_info	;
+esac	;
+
+
+
+init(RF_scan_started)	:= FALSE	;
+
+next(RF_scan_started)	:=	 case
+(start_T5 )	:	TRUE	;
+TRUE	:	RF_scan_started	;
+esac	;
+
+
+
+init(RF_scan_completed)	:= FALSE	;
+
+next(RF_scan_completed)	:=	 case
+(find_T6 )	:	TRUE	;
+TRUE	:	RF_scan_completed	;
+esac	;
+
+
+
+init(find_cell_started)	:= FALSE	;
+
+next(find_cell_started)	:=	 case
+(start_T1 )	:	TRUE	;
+TRUE	:	find_cell_started	;
+esac	;
+
+
+
+init(find_cell_completed)	:= FALSE	;
+
+next(find_cell_completed)	:=	 case
+(find_T2 )	:	TRUE	;
+(stored_T4 )	:	FALSE	;
+TRUE	:	find_cell_completed	;
+esac	;
+
+
+
+init(monitoring_paging_channel)	:= FALSE	;
+
+next(monitoring_paging_channel)	:=	 case
+(stored_T3 | rf_T7 | rf_T8 )	:	TRUE	;
+TRUE	:	monitoring_paging_channel	;
+esac	;
+
+
+
+init(cell_reevaluation_started)	:= FALSE	;
+
+next(cell_reevaluation_started)	:=	 case
+(rf_T8 )	:	TRUE	;
+TRUE	:	cell_reevaluation_started	;
+esac	;
+
 
 ---Old properties from SMF state machine
 

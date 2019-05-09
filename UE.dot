@@ -4,12 +4,38 @@ size = "8,5"
 node [shape = circle, label="init_state"]init_state;
 node [shape = circle, label="initial_cell_selection"]initial_cell_selection;
 node [shape = circle, label="stored_info_cell_selection"]stored_info_cell_selection;
+node [shape = circle, label="camped_normally"]camped_normally;
+node [shape = circle, label="any_cell_selection"]any_cell_selection;
 init_state -> stored_info_cell_selection [label = "start_T1: 
-                        cell_info_stored_for_PLMN
+                        new_PLMN_selected & has_cell_info
                     /
-"]
-init_state -> None [label = "start_T2: 
-                        !cell_info_stored_for_PLMN
+null_action, find_cell_started = TRUE"]
+stored_info_cell_selection -> stored_info_cell_selection [label = "find_T2: 
+                        has_cell_info & find_cell_started
                     /
-"]
+null_action, find_cell_completed = TRUE"]
+stored_info_cell_selection -> camped_normally [label = "stored_T3: 
+                        has_cell_info & find_cell_completed & found_suitable_cell
+                    /
+cell_selected_complete, monitoring_paging_channel = TRUE"]
+stored_info_cell_selection -> initial_cell_selection [label = "stored_T4: 
+                        has_cell_info & !found_suitable_cell
+                    /
+null_action, find_cell_completed = FALSE, has_cell_info = FALSE"]
+init_state -> initial_cell_selection [label = "start_T5: 
+                        new_PLMN_selected & !has_cell_info
+                    /
+null_action, RF_scan_started = TRUE"]
+initial_cell_selection -> initial_cell_selection [label = "find_T6: 
+                        new_PLMN_selected & !found_suitable_cell & RF_scan_started
+                    /
+null_action, RF_scan_completed = TRUE"]
+initial_cell_selection -> camped_normally [label = "rf_T7: 
+                        new_PLMN_selected & RF_scan_completed & found_suitable_cell
+                    /
+cell_selected_complete, monitoring_paging_channel = TRUE"]
+initial_cell_selection -> any_cell_selection [label = "rf_T8: 
+                        new_PLMN_selected & RF_scan_completed & !found_suitable_cell
+                    /
+any_cell_operation, monitoring_paging_channel = TRUE, cell_reevaluation_started = TRUE"]
 }

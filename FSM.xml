@@ -1,10 +1,67 @@
 <system label="5G">
 
     <VARS>
-        <VAR label="cell_info_stored_for_PLMN">
+
+        <VAR label="new_PLMN_selected">
             <datatype>boolean</datatype>
-            <controltype>environment</controltype>
+            <controltype>state</controltype>
+            <possiblevalues>TRUE,FALSE</possiblevalues>
+            <initialvalue>TRUE</initialvalue>
+        </VAR>
+
+        <VAR label="has_cell_info">
+            <datatype>boolean</datatype>
+            <controltype>state</controltype>
+            <possiblevalues>TRUE,FALSE</possiblevalues>
             <initialvalue>FALSE</initialvalue>
+        </VAR>
+    
+        <VAR label="RF_scan_started">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="RF_scan_completed">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="find_cell_started">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="find_cell_completed">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="found_suitable_cell">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="monitoring_paging_channel">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="cell_reevaluation_started">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
         </VAR>
     </VARS>
 
@@ -15,21 +72,31 @@
                 <state>init_state</state>
                 <state>initial_cell_selection</state>
                 <state>stored_info_cell_selection</state>
+                <state>camped_normally</state>
+                <state>any_cell_selection</state>
             </states>
 
             <init_state>init_state</init_state>
 
             <transitions>
+
+
                 <transition label="start_T1">
                     <start>init_state</start>
                     <end>stored_info_cell_selection</end>
 
                     <condition>
-                        cell_info_stored_for_PLMN
+                        new_PLMN_selected &amp; has_cell_info
                     </condition>
 
                     <actions>
-                        <action label="">
+                         <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="find_cell_started = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -38,16 +105,24 @@
                     </actions>
                 </transition>
 
-                <transition label="start_T2">
-                    <start>init_state</start>
-                    <end />
+
+
+                <transition label="find_T2">
+                    <start>stored_info_cell_selection</start>
+                    <end>stored_info_cell_selection</end>
 
                     <condition>
-                        !cell_info_stored_for_PLMN
+                        has_cell_info &amp; find_cell_started
                     </condition>
 
                     <actions>
-                        <action label="">
+                        <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="find_cell_completed = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -55,9 +130,177 @@
                         </action>
                     </actions>
                 </transition>
-            </transitions>
 
+
+                <transition label="stored_T3">
+                    <start>stored_info_cell_selection</start>
+                    <end>camped_normally</end>
+
+                    <condition>
+                        has_cell_info &amp; find_cell_completed &amp; found_suitable_cell
+                    </condition>
+
+                    <actions>
+                         <action label="cell_selected_complete">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="monitoring_paging_channel = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+
+
+                <transition label="stored_T4">
+                    <start>stored_info_cell_selection</start>
+                    <end>initial_cell_selection</end>
+
+                    <condition>
+                        has_cell_info &amp; !found_suitable_cell
+                    </condition>
+
+                    <actions>
+                        <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="find_cell_completed = FALSE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="has_cell_info = FALSE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                
+
+                <transition label="start_T5">
+                    <start>init_state</start>
+                    <end>initial_cell_selection</end>
+
+                    <condition>
+                        new_PLMN_selected &amp; !has_cell_info
+                    </condition>
+
+                    <actions>
+                        <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="RF_scan_started = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+
+
+                <transition label="find_T6">
+                    <start>initial_cell_selection</start>
+                    <end>initial_cell_selection</end>
+
+                    <condition>
+                        new_PLMN_selected &amp; !found_suitable_cell &amp; RF_scan_started
+                    </condition>
+
+                    <actions>
+                        <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="RF_scan_completed = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+
+
+                <transition label="rf_T7">
+                    <start>initial_cell_selection</start>
+                    <end>camped_normally</end>
+
+                    <condition>
+                        new_PLMN_selected &amp; RF_scan_completed &amp; found_suitable_cell
+                    </condition>
+
+                    <actions>
+                        <action label="cell_selected_complete">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                         <action label="monitoring_paging_channel = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+
+
+                <transition label="rf_T8">
+                    <start>initial_cell_selection</start>
+                    <end>any_cell_selection</end>
+
+                    <condition>
+                        new_PLMN_selected &amp; RF_scan_completed &amp; !found_suitable_cell
+                    </condition>
+
+                    <actions>
+                        <action label="any_cell_operation">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                         <action label="monitoring_paging_channel = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="cell_reevaluation_started = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+
+
+            </transitions>
         </FSM>
     </FSMs>
-
 </system>
