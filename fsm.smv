@@ -15,6 +15,7 @@ ue_has_usim	:	boolean;
 ue_monitoring_paging_channel	:	boolean;	
 ue_cell_reevaluation_started	:	boolean;	
 ue_connection_setup_bad	:	boolean;	
+ue_is_connected	:	boolean;	
 nb_conn_req_bad	:	boolean;	
 attacker_inject_message_chanUE	:	boolean	;
 attacker_inject_message_chanNB	:	boolean	;
@@ -338,6 +339,17 @@ next(ue_cell_reevaluation_started)	:=	 case
 TRUE	:	ue_cell_reevaluation_started	;
 esac	;
 
+
+
+init(ue_is_connected)	:= FALSE	;
+
+next(ue_is_connected)	:=	 case
+(ue_T8 )	:	TRUE	;
+TRUE	:	ue_is_connected	;
+esac	;
+
+
+LTLSPEC !nb_conn_req_bad -> F(ue_is_connected)
 
 ---Old properties from SMF state machine
 

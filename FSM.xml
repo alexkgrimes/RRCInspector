@@ -79,12 +79,20 @@
                 <fsm>ue</fsm>
         </VAR>
 
+        <VAR label="ue_is_connected">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
         <VAR label="nb_conn_req_bad">
                 <datatype>boolean</datatype>
                 <controltype>environment</controltype>
                 <initialvalue>FALSE</initialvalue>
                 <fsm>NB</fsm>
         </VAR>
+        
 
     </VARS>
 
@@ -316,6 +324,12 @@
                             <channel label="chan_NB">
                             <start>UE</start>
                             <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_is_connected = TRUE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
                             </channel>
                         </action>
                     </actions>

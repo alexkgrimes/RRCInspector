@@ -38,7 +38,7 @@ conn_req, cell_selected_complete, ue_monitoring_paging_channel = TRUE"]
 ue_camped_normally -> ue_connected [label = "ue_T8: 
                         chan_UE=chanUE_connection_setup & !ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
                     /
-conn_complete"]
+conn_complete, ue_is_connected = TRUE"]
 ue_camped_normally -> ue_camped_normally [label = "ue_T9: 
                         chan_UE=chanUE_connection_setup & ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
                     /

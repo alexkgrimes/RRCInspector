@@ -1,3 +1,5 @@
+LTLSPEC !nb_conn_req_bad -> F(ue_is_connected)
+
 ---Old properties from SMF state machine
 
 ---Discovery may only complete after discovery was initiated
