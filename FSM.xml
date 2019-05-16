@@ -4,89 +4,106 @@
 
         <VAR label="new_PLMN_selected">
             <datatype>boolean</datatype>
-            <controltype>state</controltype>
-            <possiblevalues>TRUE,FALSE</possiblevalues>
+            <controltype>environment</controltype>
             <initialvalue>TRUE</initialvalue>
+            <fsm>UE</fsm>
         </VAR>
 
-        <VAR label="has_cell_info">
+        <VAR label="ue_has_cell_info">
             <datatype>boolean</datatype>
             <controltype>state</controltype>
             <possiblevalues>TRUE,FALSE</possiblevalues>
             <initialvalue>FALSE</initialvalue>
         </VAR>
     
-        <VAR label="RF_scan_started">
+        <VAR label="ue_RF_scan_started">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="RF_scan_completed">
+        <VAR label="ue_RF_scan_completed">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="find_cell_started">
+        <VAR label="ue_find_cell_started">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="find_cell_completed">
+        <VAR label="ue_find_cell_completed">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="found_suitable_cell">
+        <VAR label="ue_found_suitable_cell">
                 <datatype>boolean</datatype>
                 <controltype>environment</controltype>
                 <initialvalue>FALSE</initialvalue>
+                <fsm>UE</fsm>
         </VAR>
 
-        <VAR label="monitoring_paging_channel">
+        <VAR label="ue_has_usim">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>FALSE</initialvalue>
+                <fsm>UE</fsm>
+        </VAR>
+
+        <VAR label="ue_monitoring_paging_channel">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="cell_reevaluation_started">
+        <VAR label="ue_cell_reevaluation_started">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
+
+        <VAR label="nb_conn_req_bad">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>FALSE</initialvalue>
+                <fsm>NB</fsm>
+        </VAR>
+
     </VARS>
 
     <FSMs>
         <FSM label="UE">
 
             <states>
-                <state>init_state</state>
-                <state>initial_cell_selection</state>
-                <state>stored_info_cell_selection</state>
-                <state>camped_normally</state>
-                <state>any_cell_selection</state>
+                <state>ue_init_state</state>
+                <state>ue_initial_cell_selection</state>
+                <state>ue_stored_info_cell_selection</state>
+                <state>ue_camped_normally</state>
+                <state>ue_connected</state>
+                <state>ue_any_cell_selection</state>
             </states>
 
-            <init_state>init_state</init_state>
+            <init_state>ue_init_state</init_state>
 
             <transitions>
 
 
-                <transition label="start_T1">
-                    <start>init_state</start>
-                    <end>stored_info_cell_selection</end>
+                <transition label="ue_T1">
+                    <start>ue_init_state</start>
+                    <end>ue_stored_info_cell_selection</end>
 
                     <condition>
-                        new_PLMN_selected &amp; has_cell_info
+                        ue_has_cell_info &amp; !ue_found_suitable_cell
                     </condition>
 
                     <actions>
@@ -96,7 +113,7 @@
                             <end>UE</end>
                             </channel>
                         </action>
-                        <action label="find_cell_started = TRUE">
+                        <action label="ue_find_cell_started = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -107,12 +124,12 @@
 
 
 
-                <transition label="find_T2">
-                    <start>stored_info_cell_selection</start>
-                    <end>stored_info_cell_selection</end>
+                <transition label="ue_T2">
+                    <start>ue_stored_info_cell_selection</start>
+                    <end>ue_stored_info_cell_selection</end>
 
                     <condition>
-                        has_cell_info &amp; find_cell_started
+                        ue_has_cell_info &amp; ue_find_cell_started &amp; !ue_found_suitable_cell
                     </condition>
 
                     <actions>
@@ -122,7 +139,7 @@
                             <end>UE</end>
                             </channel>
                         </action>
-                        <action label="find_cell_completed = TRUE">
+                        <action label="ue_find_cell_completed = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -132,22 +149,28 @@
                 </transition>
 
 
-                <transition label="stored_T3">
-                    <start>stored_info_cell_selection</start>
-                    <end>camped_normally</end>
+                <transition label="ue_T3">
+                    <start>ue_stored_info_cell_selection</start>
+                    <end>ue_camped_normally</end>
 
                     <condition>
-                        has_cell_info &amp; find_cell_completed &amp; found_suitable_cell
+                        ue_has_cell_info &amp; ue_find_cell_completed &amp; ue_found_suitable_cell
                     </condition>
 
                     <actions>
+                        <action label="conn_req">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
                          <action label="cell_selected_complete">
                             <channel label="chan_UE">
                             <start>UE</start>
                             <end>UE</end>
                             </channel>
                         </action>
-                        <action label="monitoring_paging_channel = TRUE">
+                        <action label="ue_monitoring_paging_channel = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -158,12 +181,12 @@
 
 
 
-                <transition label="stored_T4">
-                    <start>stored_info_cell_selection</start>
-                    <end>initial_cell_selection</end>
+                <transition label="ue_T4">
+                    <start>ue_stored_info_cell_selection</start>
+                    <end>ue_initial_cell_selection</end>
 
                     <condition>
-                        has_cell_info &amp; !found_suitable_cell
+                        ue_has_cell_info &amp; !ue_found_suitable_cell
                     </condition>
 
                     <actions>
@@ -173,13 +196,13 @@
                             <end>UE</end>
                             </channel>
                         </action>
-                        <action label="find_cell_completed = FALSE">
+                        <action label="ue_find_cell_completed = FALSE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
                             </channel>
                         </action>
-                        <action label="has_cell_info = FALSE">
+                        <action label="ue_has_cell_info = FALSE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -190,12 +213,12 @@
 
                 
 
-                <transition label="start_T5">
-                    <start>init_state</start>
-                    <end>initial_cell_selection</end>
+                <transition label="ue_T5">
+                    <start>ue_init_state</start>
+                    <end>ue_initial_cell_selection</end>
 
                     <condition>
-                        new_PLMN_selected &amp; !has_cell_info
+                        !ue_has_cell_info &amp; !ue_found_suitable_cell
                     </condition>
 
                     <actions>
@@ -205,7 +228,7 @@
                             <end>UE</end>
                             </channel>
                         </action>
-                        <action label="RF_scan_started = TRUE">
+                        <action label="ue_RF_scan_started = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -216,12 +239,12 @@
 
 
 
-                <transition label="find_T6">
-                    <start>initial_cell_selection</start>
-                    <end>initial_cell_selection</end>
+                <transition label="ue_T6">
+                    <start>ue_initial_cell_selection</start>
+                    <end>ue_initial_cell_selection</end>
 
                     <condition>
-                        new_PLMN_selected &amp; !found_suitable_cell &amp; RF_scan_started
+                        ue_RF_scan_started &amp; !ue_found_suitable_cell 
                     </condition>
 
                     <actions>
@@ -231,7 +254,7 @@
                             <end>UE</end>
                             </channel>
                         </action>
-                        <action label="RF_scan_completed = TRUE">
+                        <action label="ue_RF_scan_completed = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -242,22 +265,28 @@
 
 
 
-                <transition label="rf_T7">
-                    <start>initial_cell_selection</start>
-                    <end>camped_normally</end>
+                <transition label="ue_T7">
+                    <start>ue_initial_cell_selection</start>
+                    <end>ue_camped_normally</end>
 
                     <condition>
-                        new_PLMN_selected &amp; RF_scan_completed &amp; found_suitable_cell
+                        ue_RF_scan_completed &amp; ue_found_suitable_cell
                     </condition>
 
                     <actions>
+                        <action label="conn_req">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
                         <action label="cell_selected_complete">
                             <channel label="chan_UE">
                             <start>UE</start>
                             <end>UE</end>
                             </channel>
                         </action>
-                         <action label="monitoring_paging_channel = TRUE">
+                         <action label="ue_monitoring_paging_channel = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -266,14 +295,32 @@
                     </actions>
                 </transition>
 
-
-
-                <transition label="rf_T8">
-                    <start>initial_cell_selection</start>
-                    <end>any_cell_selection</end>
+                
+                <transition label="ue_T8">
+                    <start>ue_camped_normally</start>
+                    <end>ue_connected</end>
 
                     <condition>
-                        new_PLMN_selected &amp; RF_scan_completed &amp; !found_suitable_cell
+                        chan_UE=chanUE_connection_setup &amp; ue_RF_scan_completed &amp; ue_found_suitable_cell 
+                    </condition>
+
+                    <actions>
+                        <action label="conn_complete">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+
+                <transition label="ue_T9">
+                    <start>ue_initial_cell_selection</start>
+                    <end>ue_any_cell_selection</end>
+
+                    <condition>
+                        ue_RF_scan_completed &amp; !ue_found_suitable_cell
                     </condition>
 
                     <actions>
@@ -283,13 +330,13 @@
                             <end>UE</end>
                             </channel>
                         </action>
-                         <action label="monitoring_paging_channel = TRUE">
+                         <action label="ue_monitoring_paging_channel = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
                             </channel>
                         </action>
-                        <action label="cell_reevaluation_started = TRUE">
+                        <action label="ue_cell_reevaluation_started = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -300,7 +347,141 @@
 
 
 
+                <transition label="ue_T10">
+                    <start>ue_any_cell_selection</start>
+                    <end>ue_init_state</end>
+
+                    <condition>
+                        ue_has_usim &amp; !ue_found_suitable_cell
+                    </condition> 
+
+                    <actions>
+                        <action label="start_cell_selection">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                         <action label="ue_find_cell_started = FALSE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_find_cell_completed = FALSE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
             </transitions>
         </FSM>
+
+        <FSM label="NB">
+
+            <states>
+                <state>nb_disconnected</state>
+                <state>nb_conn_setup</state>
+                <state>nb_conn_complete</state>
+            </states>
+
+            <init_state>nb_disconnected</init_state>
+            <transitions>
+
+                <transition label="nb_T1">
+                        <start>nb_disconnected</start>
+                        <end>nb_conn_setup</end>
+
+                        <condition>
+                            chan_NB=chanNB_conn_req &amp; !nb_conn_req_bad
+                        </condition> 
+
+                        <actions>
+                            <action label="connection_setup">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="set_up_connection">
+                                <channel label="chan_NB">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                        </actions>
+                </transition>
+
+                <transition label="nb_T2">
+                        <start>nb_conn_setup</start>
+                        <end>nb_conn_complete</end>
+
+                        <condition>
+                            chan_NB=chanNB_conn_complete
+                        </condition> 
+
+                        <actions>
+                            <action label="null_action">
+                                <channel label="chan_NB">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                        </actions>
+                </transition>
+
+                <transition label="nb_T3">
+                        <start>nb_disconnected</start>
+                        <end>nb_disconnected</end>
+
+                        <condition>
+                            chan_NB=chanNB_conn_complete &amp; nb_conn_req_bad
+                        </condition> 
+
+                        <actions>
+                            <action label="null_action">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                        </actions>
+                </transition>
+
+            </transitions>
+        </FSM>
+
     </FSMs>
+
+    <channels>
+        <channel label="chan_UE"> 
+            <start>NB</start>   
+            <end>UE</end>
+            <noisy>FALSE</noisy>
+        </channel>
+
+        <channel label="chan_NB">
+            <start>UE</start>
+            <end>NB</end>
+            <noisy>FALSE</noisy>
+        </channel>
+    </channels>
+
+    <injective_adversaries>
+        <adversary label="inj_adv_UE"> 
+            <activechannel> chan_UE</activechannel> 
+            <alwayson>FALSE</alwayson>
+        </adversary>
+
+        <adversary label="inj_adv_NB">
+            <activechannel> chan_NB</activechannel>
+            <alwayson>FALSE</alwayson>
+        </adversary>
+
+    </injective_adversaries>
+        
+
+                
 </system>

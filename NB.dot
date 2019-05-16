@@ -1,0 +1,19 @@
+digraph NB{
+rankdir = LR;
+size = "8,5"
+node [shape = circle, label="nb_disconnected"]nb_disconnected;
+node [shape = circle, label="nb_conn_setup"]nb_conn_setup;
+node [shape = circle, label="nb_conn_complete"]nb_conn_complete;
+nb_disconnected -> nb_conn_setup [label = "nb_T1: 
+                            chan_NB=chanNB_conn_req & !nb_conn_req_bad
+                        /
+connection_setup, set_up_connection"]
+nb_conn_setup -> nb_conn_complete [label = "nb_T2: 
+                            chan_NB=chanNB_conn_complete
+                        /
+null_action"]
+nb_disconnected -> nb_disconnected [label = "nb_T3: 
+                            chan_NB=chanNB_conn_complete & nb_conn_req_bad
+                        /
+null_action"]
+}

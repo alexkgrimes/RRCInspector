@@ -5,14 +5,18 @@ VAR
 
 ------------------- Environment and State variables --------------------
 new_PLMN_selected	:	boolean;	
-has_cell_info	:	boolean;	
-RF_scan_started	:	boolean;	
-RF_scan_completed	:	boolean;	
-find_cell_started	:	boolean;	
-find_cell_completed	:	boolean;	
-found_suitable_cell	:	boolean;	
-monitoring_paging_channel	:	boolean;	
-cell_reevaluation_started	:	boolean;	
+ue_has_cell_info	:	boolean;	
+ue_RF_scan_started	:	boolean;	
+ue_RF_scan_completed	:	boolean;	
+ue_find_cell_started	:	boolean;	
+ue_find_cell_completed	:	boolean;	
+ue_found_suitable_cell	:	boolean;	
+ue_has_usim	:	boolean;	
+ue_monitoring_paging_channel	:	boolean;	
+ue_cell_reevaluation_started	:	boolean;	
+nb_conn_req_bad	:	boolean;	
+attacker_inject_message_chanUE	:	boolean	;
+attacker_inject_message_chanNB	:	boolean	;
 
 ----------------- Sequence numbers -------------------
 
@@ -20,53 +24,127 @@ cell_reevaluation_started	:	boolean;
 
 ue_state	:
 {
-	init_state,
-	initial_cell_selection,
-	stored_info_cell_selection,
-	camped_normally,
-	any_cell_selection
+	ue_init_state,
+	ue_initial_cell_selection,
+	ue_stored_info_cell_selection,
+	ue_camped_normally,
+	ue_connected,
+	ue_any_cell_selection
+};
+
+---------------- state for NB state machine ----------------
+
+nb_state	:
+{
+	nb_disconnected,
+	nb_conn_setup,
+	nb_conn_complete
 };
 ------------ Possible UE actions ----------------
 
 ue_action	:
 {
 	ue_null_action,
+	ue_conn_req,
 	ue_cell_selected_complete,
-	ue_any_cell_operation
+	ue_conn_complete,
+	ue_any_cell_operation,
+	ue_start_cell_selection
+};
+------------ Possible NB actions ----------------
+
+nb_action	:
+{
+	nb_connection_setup,
+	nb_set_up_connection,
+	nb_null_action
+};
+
+--------------- Adversarial channel from NB to UE ---------------
+
+chan_UE	:
+{
+	chanUE_connection_setup,
+	chanUE_null_action
+};
+
+--------------- Adversarial channel from UE to NB ---------------
+
+chan_NB	:
+{
+	chanNB_conn_req,
+	chanNB_conn_complete
+};
+
+--------------- Injection adversary action for channel chan_UE ---------------
+
+inj_adv_act_UE	:
+{
+	adv_UE_connection_setup,
+	adv_UE_null_action
+};
+
+--------------- Injection adversary action for channel chan_NB ---------------
+
+inj_adv_act_NB	:
+{
+	adv_NB_conn_req,
+	adv_NB_conn_complete
 };
 
 
 DEFINE
 
 -----------------UE transitions --------------------
-start_T1	:=	 (ue_state = init_state & 
-                        new_PLMN_selected & has_cell_info
+ue_T1	:=	 (ue_state = ue_init_state & 
+                        ue_has_cell_info & !ue_found_suitable_cell
                     )	;
-find_T2	:=	 (ue_state = stored_info_cell_selection & 
-                        has_cell_info & find_cell_started
+ue_T2	:=	 (ue_state = ue_stored_info_cell_selection & 
+                        ue_has_cell_info & ue_find_cell_started & !ue_found_suitable_cell
                     )	;
-stored_T3	:=	 (ue_state = stored_info_cell_selection & 
-                        has_cell_info & find_cell_completed & found_suitable_cell
+ue_T3	:=	 (ue_state = ue_stored_info_cell_selection & 
+                        ue_has_cell_info & ue_find_cell_completed & ue_found_suitable_cell
                     )	;
-stored_T4	:=	 (ue_state = stored_info_cell_selection & 
-                        has_cell_info & !found_suitable_cell
+ue_T4	:=	 (ue_state = ue_stored_info_cell_selection & 
+                        ue_has_cell_info & !ue_found_suitable_cell
                     )	;
-start_T5	:=	 (ue_state = init_state & 
-                        new_PLMN_selected & !has_cell_info
+ue_T5	:=	 (ue_state = ue_init_state & 
+                        !ue_has_cell_info & !ue_found_suitable_cell
                     )	;
-find_T6	:=	 (ue_state = initial_cell_selection & 
-                        new_PLMN_selected & !found_suitable_cell & RF_scan_started
+ue_T6	:=	 (ue_state = ue_initial_cell_selection & 
+                        ue_RF_scan_started & !ue_found_suitable_cell 
                     )	;
-rf_T7	:=	 (ue_state = initial_cell_selection & 
-                        new_PLMN_selected & RF_scan_completed & found_suitable_cell
+ue_T7	:=	 (ue_state = ue_initial_cell_selection & 
+                        ue_RF_scan_completed & ue_found_suitable_cell
                     )	;
-rf_T8	:=	 (ue_state = initial_cell_selection & 
-                        new_PLMN_selected & RF_scan_completed & !found_suitable_cell
+ue_T8	:=	 (ue_state = ue_camped_normally & 
+                        chan_UE=chanUE_connection_setup & ue_RF_scan_completed & ue_found_suitable_cell 
                     )	;
+ue_T9	:=	 (ue_state = ue_initial_cell_selection & 
+                        ue_RF_scan_completed & !ue_found_suitable_cell
+                    )	;
+ue_T10	:=	 (ue_state = ue_any_cell_selection & 
+                        ue_has_usim & !ue_found_suitable_cell
+                    )	;
+
+-----------------NB transitions --------------------
+nb_T1	:=	 (nb_state = nb_disconnected & 
+                            chan_NB=chanNB_conn_req & !nb_conn_req_bad
+                        )	;
+nb_T2	:=	 (nb_state = nb_conn_setup & 
+                            chan_NB=chanNB_conn_complete
+                        )	;
+nb_T3	:=	 (nb_state = nb_disconnected & 
+                            chan_NB=chanNB_conn_complete & nb_conn_req_bad
+                        )	;
 
 ------------------- Noisy Channels --------------------
+noisy_channel_UE:=	FALSE;
+noisy_channel_NB:=	FALSE;
 
 ------------------- Adversary enabled or not --------------------
+inj_adv_UE_enabled:=	FALSE;
+inj_adv_NB_enabled:=	FALSE;
 
 
 ASSIGN
@@ -74,18 +152,58 @@ ASSIGN
 
 ------------------- Adversarial state machines --------------------
 
+init(inj_adv_act_UE)	:=
+{
+	adv_UE_connection_setup,
+	adv_UE_null_action
+};
+
+next(inj_adv_act_UE)	:=	case
+TRUE	:	{
+	adv_UE_connection_setup,
+	adv_UE_null_action
+};
+esac	;
+
+init(inj_adv_act_NB)	:=
+{
+	adv_NB_conn_req,
+	adv_NB_conn_complete
+};
+
+next(inj_adv_act_NB)	:=	case
+TRUE	:	{
+	adv_NB_conn_req,
+	adv_NB_conn_complete
+};
+esac	;
+
 
 ---------------UE state machine ------------------
 
-init(ue_state)	:=init_state;
+init(ue_state)	:=ue_init_state;
 
 next(ue_state)	:=	 case
 
-(stored_T4 | start_T5 | find_T6 )	:	initial_cell_selection	;
-(start_T1 | find_T2 )	:	stored_info_cell_selection	;
-(stored_T3 | rf_T7 )	:	camped_normally	;
-(rf_T8 )	:	any_cell_selection	;
+(ue_T10 )	:	ue_init_state	;
+(ue_T4 | ue_T5 | ue_T6 )	:	ue_initial_cell_selection	;
+(ue_T1 | ue_T2 )	:	ue_stored_info_cell_selection	;
+(ue_T3 | ue_T7 )	:	ue_camped_normally	;
+(ue_T8 )	:	ue_connected	;
+(ue_T9 )	:	ue_any_cell_selection	;
 TRUE	:	ue_state	;
+esac	;
+
+---------------NB state machine ------------------
+
+init(nb_state)	:=nb_disconnected;
+
+next(nb_state)	:=	 case
+
+(nb_T3 )	:	nb_disconnected	;
+(nb_T1 )	:	nb_conn_setup	;
+(nb_T2 )	:	nb_conn_complete	;
+TRUE	:	nb_state	;
 esac	;
 
 
@@ -93,73 +211,120 @@ init(ue_action)	:= ue_null_action	;
 
 next(ue_action)	:=	 case
 
-(start_T1 | find_T2 | stored_T4 | start_T5 | find_T6 )	:	ue_null_action	;
-(stored_T3 | rf_T7 )	:	ue_cell_selected_complete	;
-(rf_T8 )	:	ue_any_cell_operation	;
+(ue_T1 | ue_T2 | ue_T4 | ue_T5 | ue_T6 )	:	ue_null_action	;
+(ue_T3 | ue_T7 )	:	ue_conn_req	;
+(ue_T3 | ue_T7 )	:	ue_cell_selected_complete	;
+(ue_T8 )	:	ue_conn_complete	;
+(ue_T9 )	:	ue_any_cell_operation	;
+(ue_T10 )	:	ue_start_cell_selection	;
 TRUE	:	ue_null_action	;
 esac	;
 
 
-init(has_cell_info)	:= FALSE	;
+init(nb_action)	:= nb_null_action	;
 
-next(has_cell_info)	:=	 case
-(stored_T4 )	:	FALSE	;
-TRUE	:	has_cell_info	;
+next(nb_action)	:=	 case
+
+(nb_T1 )	:	nb_connection_setup	;
+(nb_T1 )	:	nb_set_up_connection	;
+(nb_T2 | nb_T3 )	:	nb_null_action	;
+TRUE	:	nb_null_action	;
+esac	;
+
+init(chan_UE)	:=	chanUE_null_action;
+
+next(chan_UE)	:=	 case
+attacker_inject_message_chanUE	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_setup	:	chanUE_connection_setup	;
+attacker_inject_message_chanUE	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_null_action	:	chanUE_null_action	;
+! noisy_channel_UE	&	nb_action	=	 nb_connection_setup	:	chanUE_connection_setup	;
+! noisy_channel_UE	&	nb_action	=	 nb_null_action	:	chanUE_null_action	;
+
+TRUE	:
+{
+	chanUE_connection_setup,
+	chanUE_null_action
+}	;
+esac	;
+
+
+init(chan_NB)	:=	chanNB_null_action;
+
+next(chan_NB)	:=	 case
+attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_conn_req	:	chanNB_conn_req	;
+attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_conn_complete	:	chanNB_conn_complete	;
+! noisy_channel_NB	&	ue_action	=	 ue_conn_req	:	chanNB_conn_req	;
+! noisy_channel_NB	&	ue_action	=	 ue_conn_complete	:	chanNB_conn_complete	;
+
+TRUE	:
+{
+	chanNB_conn_req,
+	chanNB_conn_complete
+}	;
 esac	;
 
 
 
-init(RF_scan_started)	:= FALSE	;
+init(ue_has_cell_info)	:= FALSE	;
 
-next(RF_scan_started)	:=	 case
-(start_T5 )	:	TRUE	;
-TRUE	:	RF_scan_started	;
+next(ue_has_cell_info)	:=	 case
+(ue_T4 )	:	FALSE	;
+TRUE	:	ue_has_cell_info	;
 esac	;
 
 
 
-init(RF_scan_completed)	:= FALSE	;
+init(ue_RF_scan_started)	:= FALSE	;
 
-next(RF_scan_completed)	:=	 case
-(find_T6 )	:	TRUE	;
-TRUE	:	RF_scan_completed	;
+next(ue_RF_scan_started)	:=	 case
+(ue_T5 )	:	TRUE	;
+TRUE	:	ue_RF_scan_started	;
 esac	;
 
 
 
-init(find_cell_started)	:= FALSE	;
+init(ue_RF_scan_completed)	:= FALSE	;
 
-next(find_cell_started)	:=	 case
-(start_T1 )	:	TRUE	;
-TRUE	:	find_cell_started	;
+next(ue_RF_scan_completed)	:=	 case
+(ue_T6 )	:	TRUE	;
+TRUE	:	ue_RF_scan_completed	;
 esac	;
 
 
 
-init(find_cell_completed)	:= FALSE	;
+init(ue_find_cell_started)	:= FALSE	;
 
-next(find_cell_completed)	:=	 case
-(find_T2 )	:	TRUE	;
-(stored_T4 )	:	FALSE	;
-TRUE	:	find_cell_completed	;
+next(ue_find_cell_started)	:=	 case
+(ue_T1 )	:	TRUE	;
+(ue_T10 )	:	FALSE	;
+TRUE	:	ue_find_cell_started	;
 esac	;
 
 
 
-init(monitoring_paging_channel)	:= FALSE	;
+init(ue_find_cell_completed)	:= FALSE	;
 
-next(monitoring_paging_channel)	:=	 case
-(stored_T3 | rf_T7 | rf_T8 )	:	TRUE	;
-TRUE	:	monitoring_paging_channel	;
+next(ue_find_cell_completed)	:=	 case
+(ue_T2 )	:	TRUE	;
+(ue_T4 | ue_T10 )	:	FALSE	;
+TRUE	:	ue_find_cell_completed	;
 esac	;
 
 
 
-init(cell_reevaluation_started)	:= FALSE	;
+init(ue_monitoring_paging_channel)	:= FALSE	;
 
-next(cell_reevaluation_started)	:=	 case
-(rf_T8 )	:	TRUE	;
-TRUE	:	cell_reevaluation_started	;
+next(ue_monitoring_paging_channel)	:=	 case
+(ue_T3 | ue_T7 | ue_T9 )	:	TRUE	;
+TRUE	:	ue_monitoring_paging_channel	;
+esac	;
+
+
+
+init(ue_cell_reevaluation_started)	:= FALSE	;
+
+next(ue_cell_reevaluation_started)	:=	 case
+(ue_T9 )	:	TRUE	;
+TRUE	:	ue_cell_reevaluation_started	;
 esac	;
 
 

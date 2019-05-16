@@ -1,4 +1,4 @@
-new_PLMN_selected - state
+new_PLMN_selected - environment
 
 has_cell_info - state
     
