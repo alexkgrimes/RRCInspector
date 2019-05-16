@@ -72,6 +72,13 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
+        <VAR label="ue_connection_setup_bad">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>FALSE</initialvalue>
+                <fsm>ue</fsm>
+        </VAR>
+
         <VAR label="nb_conn_req_bad">
                 <datatype>boolean</datatype>
                 <controltype>environment</controltype>
@@ -301,7 +308,7 @@
                     <end>ue_connected</end>
 
                     <condition>
-                        chan_UE=chanUE_connection_setup &amp; ue_RF_scan_completed &amp; ue_found_suitable_cell 
+                        chan_UE=chanUE_connection_setup &amp; !ue_connection_setup_bad &amp; ue_RF_scan_completed &amp; ue_found_suitable_cell 
                     </condition>
 
                     <actions>
@@ -314,8 +321,27 @@
                     </actions>
                 </transition>
 
-
                 <transition label="ue_T9">
+                    <start>ue_camped_normally</start>
+                    <end>ue_camped_normally</end>
+
+                    <condition>
+                        chan_UE=chanUE_connection_setup &amp; ue_connection_setup_bad &amp; ue_RF_scan_completed &amp; ue_found_suitable_cell 
+                    </condition>
+
+                    <actions>
+                        <action label="null_action">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+
+
+                <transition label="ue_T10">
                     <start>ue_initial_cell_selection</start>
                     <end>ue_any_cell_selection</end>
 
@@ -347,7 +373,7 @@
 
 
 
-                <transition label="ue_T10">
+                <transition label="ue_T11">
                     <start>ue_any_cell_selection</start>
                     <end>ue_init_state</end>
 

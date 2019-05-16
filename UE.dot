@@ -36,14 +36,18 @@ ue_initial_cell_selection -> ue_camped_normally [label = "ue_T7:
                     /
 conn_req, cell_selected_complete, ue_monitoring_paging_channel = TRUE"]
 ue_camped_normally -> ue_connected [label = "ue_T8: 
-                        chan_UE=chanUE_connection_setup & ue_RF_scan_completed & ue_found_suitable_cell 
+                        chan_UE=chanUE_connection_setup & !ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
                     /
 conn_complete"]
-ue_initial_cell_selection -> ue_any_cell_selection [label = "ue_T9: 
+ue_camped_normally -> ue_camped_normally [label = "ue_T9: 
+                        chan_UE=chanUE_connection_setup & ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
+                    /
+null_action"]
+ue_initial_cell_selection -> ue_any_cell_selection [label = "ue_T10: 
                         ue_RF_scan_completed & !ue_found_suitable_cell
                     /
 any_cell_operation, ue_monitoring_paging_channel = TRUE, ue_cell_reevaluation_started = TRUE"]
-ue_any_cell_selection -> ue_init_state [label = "ue_T10: 
+ue_any_cell_selection -> ue_init_state [label = "ue_T11: 
                         ue_has_usim & !ue_found_suitable_cell
                     /
 start_cell_selection, ue_find_cell_started = FALSE, ue_find_cell_completed = FALSE"]

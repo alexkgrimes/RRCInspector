@@ -14,6 +14,7 @@ ue_found_suitable_cell	:	boolean;
 ue_has_usim	:	boolean;	
 ue_monitoring_paging_channel	:	boolean;	
 ue_cell_reevaluation_started	:	boolean;	
+ue_connection_setup_bad	:	boolean;	
 nb_conn_req_bad	:	boolean;	
 attacker_inject_message_chanUE	:	boolean	;
 attacker_inject_message_chanNB	:	boolean	;
@@ -73,7 +74,8 @@ chan_UE	:
 chan_NB	:
 {
 	chanNB_conn_req,
-	chanNB_conn_complete
+	chanNB_conn_complete,
+	chanNB_null_action
 };
 
 --------------- Injection adversary action for channel chan_UE ---------------
@@ -89,7 +91,8 @@ inj_adv_act_UE	:
 inj_adv_act_NB	:
 {
 	adv_NB_conn_req,
-	adv_NB_conn_complete
+	adv_NB_conn_complete,
+	adv_NB_null_action
 };
 
 
@@ -118,12 +121,15 @@ ue_T7	:=	 (ue_state = ue_initial_cell_selection &
                         ue_RF_scan_completed & ue_found_suitable_cell
                     )	;
 ue_T8	:=	 (ue_state = ue_camped_normally & 
-                        chan_UE=chanUE_connection_setup & ue_RF_scan_completed & ue_found_suitable_cell 
+                        chan_UE=chanUE_connection_setup & !ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
                     )	;
-ue_T9	:=	 (ue_state = ue_initial_cell_selection & 
+ue_T9	:=	 (ue_state = ue_camped_normally & 
+                        chan_UE=chanUE_connection_setup & ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
+                    )	;
+ue_T10	:=	 (ue_state = ue_initial_cell_selection & 
                         ue_RF_scan_completed & !ue_found_suitable_cell
                     )	;
-ue_T10	:=	 (ue_state = ue_any_cell_selection & 
+ue_T11	:=	 (ue_state = ue_any_cell_selection & 
                         ue_has_usim & !ue_found_suitable_cell
                     )	;
 
@@ -168,13 +174,15 @@ esac	;
 init(inj_adv_act_NB)	:=
 {
 	adv_NB_conn_req,
-	adv_NB_conn_complete
+	adv_NB_conn_complete,
+	adv_NB_null_action
 };
 
 next(inj_adv_act_NB)	:=	case
 TRUE	:	{
 	adv_NB_conn_req,
-	adv_NB_conn_complete
+	adv_NB_conn_complete,
+	adv_NB_null_action
 };
 esac	;
 
@@ -185,12 +193,12 @@ init(ue_state)	:=ue_init_state;
 
 next(ue_state)	:=	 case
 
-(ue_T10 )	:	ue_init_state	;
+(ue_T11 )	:	ue_init_state	;
 (ue_T4 | ue_T5 | ue_T6 )	:	ue_initial_cell_selection	;
 (ue_T1 | ue_T2 )	:	ue_stored_info_cell_selection	;
-(ue_T3 | ue_T7 )	:	ue_camped_normally	;
+(ue_T3 | ue_T7 | ue_T9 )	:	ue_camped_normally	;
 (ue_T8 )	:	ue_connected	;
-(ue_T9 )	:	ue_any_cell_selection	;
+(ue_T10 )	:	ue_any_cell_selection	;
 TRUE	:	ue_state	;
 esac	;
 
@@ -211,12 +219,12 @@ init(ue_action)	:= ue_null_action	;
 
 next(ue_action)	:=	 case
 
-(ue_T1 | ue_T2 | ue_T4 | ue_T5 | ue_T6 )	:	ue_null_action	;
+(ue_T1 | ue_T2 | ue_T4 | ue_T5 | ue_T6 | ue_T9 )	:	ue_null_action	;
 (ue_T3 | ue_T7 )	:	ue_conn_req	;
 (ue_T3 | ue_T7 )	:	ue_cell_selected_complete	;
 (ue_T8 )	:	ue_conn_complete	;
-(ue_T9 )	:	ue_any_cell_operation	;
-(ue_T10 )	:	ue_start_cell_selection	;
+(ue_T10 )	:	ue_any_cell_operation	;
+(ue_T11 )	:	ue_start_cell_selection	;
 TRUE	:	ue_null_action	;
 esac	;
 
@@ -252,13 +260,16 @@ init(chan_NB)	:=	chanNB_null_action;
 next(chan_NB)	:=	 case
 attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_conn_req	:	chanNB_conn_req	;
 attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_conn_complete	:	chanNB_conn_complete	;
+attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_null_action	:	chanNB_null_action	;
 ! noisy_channel_NB	&	ue_action	=	 ue_conn_req	:	chanNB_conn_req	;
 ! noisy_channel_NB	&	ue_action	=	 ue_conn_complete	:	chanNB_conn_complete	;
+! noisy_channel_NB	&	ue_action	=	 ue_null_action	:	chanNB_null_action	;
 
 TRUE	:
 {
 	chanNB_conn_req,
-	chanNB_conn_complete
+	chanNB_conn_complete,
+	chanNB_null_action
 }	;
 esac	;
 
@@ -295,7 +306,7 @@ init(ue_find_cell_started)	:= FALSE	;
 
 next(ue_find_cell_started)	:=	 case
 (ue_T1 )	:	TRUE	;
-(ue_T10 )	:	FALSE	;
+(ue_T11 )	:	FALSE	;
 TRUE	:	ue_find_cell_started	;
 esac	;
 
@@ -305,7 +316,7 @@ init(ue_find_cell_completed)	:= FALSE	;
 
 next(ue_find_cell_completed)	:=	 case
 (ue_T2 )	:	TRUE	;
-(ue_T4 | ue_T10 )	:	FALSE	;
+(ue_T4 | ue_T11 )	:	FALSE	;
 TRUE	:	ue_find_cell_completed	;
 esac	;
 
@@ -314,7 +325,7 @@ esac	;
 init(ue_monitoring_paging_channel)	:= FALSE	;
 
 next(ue_monitoring_paging_channel)	:=	 case
-(ue_T3 | ue_T7 | ue_T9 )	:	TRUE	;
+(ue_T3 | ue_T7 | ue_T10 )	:	TRUE	;
 TRUE	:	ue_monitoring_paging_channel	;
 esac	;
 
@@ -323,7 +334,7 @@ esac	;
 init(ue_cell_reevaluation_started)	:= FALSE	;
 
 next(ue_cell_reevaluation_started)	:=	 case
-(ue_T9 )	:	TRUE	;
+(ue_T10 )	:	TRUE	;
 TRUE	:	ue_cell_reevaluation_started	;
 esac	;
 
