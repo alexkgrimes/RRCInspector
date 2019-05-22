@@ -1,19 +1,26 @@
 digraph NB{
 rankdir = LR;
 size = "8,5"
-node [shape = circle, label="nb_disconnected"]nb_disconnected;
-node [shape = circle, label="nb_conn_setup"]nb_conn_setup;
-node [shape = circle, label="nb_conn_complete"]nb_conn_complete;
-nb_disconnected -> nb_conn_setup [label = "nb_T1: 
-                            chan_NB=chanNB_conn_req & !nb_conn_req_bad
+node [shape = circle, label="nb_rrc_idle"]nb_rrc_idle;
+node [shape = circle, label="nb_rrc_connected"]nb_rrc_connected;
+nb_rrc_idle -> nb_rrc_idle [label = "nb_T1: 
+                            chan_NB=chanNB_connection_request & !nb_connection_setup_sent 
                         /
-connection_setup, set_up_connection"]
-nb_conn_setup -> nb_conn_complete [label = "nb_T2: 
-                            chan_NB=chanNB_conn_complete
+connection_setup, nb_connection_setup_sent = TRUE"]
+nb_rrc_idle -> nb_rrc_connected [label = "nb_T2: 
+                            chan_NB=chanNB_connection_complete & nb_connection_setup_sent & !nb_down_link_info_sent
+                        /
+down_link_info, nb_down_link_info_sent = TRUE, nb_is_connected = TRUE"]
+nb_rrc_connected -> nb_rrc_connected [label = "nb_T3: 
+                            chan_NB=chanNB_up_link_info 
+                        /
+down_link_info2, nb_down_link_info2_sent = TRUE"]
+nb_rrc_connected -> nb_rrc_connected [label = "nb_T4: 
+                            chan_NB=chanNB_up_link_info 
                         /
 null_action"]
-nb_disconnected -> nb_disconnected [label = "nb_T3: 
-                            chan_NB=chanNB_conn_complete & nb_conn_req_bad
+nb_rrc_connected -> nb_rrc_idle [label = "nb_T5: 
+                            nb_down_link_info2_sent & nb_down_link_info_sent
                         /
-null_action"]
+connection_release, nb_connection_release_sent = TRUE, nb_connection_setup_sent = FALSE, nb_down_link_info_sent = FALSE, nb_down_link_info2_sent = FALSE"]
 }

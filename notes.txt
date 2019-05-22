@@ -1,0 +1,3 @@
+assuming that cell always has info (either good or bad)
+    -> because RRC redirection attack does not depend on the RF scan 
+

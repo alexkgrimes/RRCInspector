@@ -1,0 +1,513 @@
+<system label="5G">
+
+    <VARS>
+
+        <VAR label="AHHHHH">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_start_cell_selection">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>TRUE</initialvalue>
+        </VAR>
+
+         <VAR label="ue_cell_info_bad">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_connection_request_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_connection_setup_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_is_connected">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_is_connected">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_down_link_info_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_down_link_info2_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_up_link_info_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_connection_release_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_connection_release_bad">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>TRUE</initialvalue>
+        </VAR>
+
+         <VAR label="ue_down_link_info2_recv">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        
+
+    </VARS>
+
+    <FSMs>
+        <FSM label="UE">
+
+            <states>
+                <state>ue_rrc_idle</state>
+                <state>ue_rrc_connected</state>
+            </states>
+
+            <init_state>ue_rrc_idle</init_state>
+
+            <transitions>
+
+
+                <transition label="ue_T1">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         ue_start_cell_selection &amp; !ue_cell_info_bad &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="connection_request">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_connection_request_sent = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                
+                <transition label="ue_T2">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_connected</end>
+
+                    <condition>
+                        chan_UE=chanUE_connection_setup &amp; ue_connection_request_sent 
+                    </condition>
+
+                    <actions>
+                        <action label="connection_complete">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_is_connected = TRUE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        
+                    </actions>
+                </transition>
+
+                <transition label="ue_T3">
+                    <start>ue_rrc_connected</start>
+                    <end>ue_rrc_connected</end>
+
+                    <condition>
+                        chan_UE=chanUE_down_link_info &amp; ue_is_connected &amp; ue_connection_request_sent 
+                    </condition>
+
+                    <actions>
+                        <action label="up_link_info">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_up_link_info_sent = TRUE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        
+                    </actions>
+                </transition>
+
+                <transition label="ue_T4">
+                    <start>ue_rrc_connected</start>
+                    <end>ue_rrc_connected</end>
+
+                    <condition>
+                        chan_UE=chanUE_down_link_info2 &amp; ue_is_connected &amp; ue_up_link_info_sent &amp; ue_connection_request_sent
+                    </condition>
+
+                    <actions>
+                        <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>NB</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_down_link_info2_recv = TRUE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        
+                    </actions>
+                </transition>
+
+                <transition label="ue_T5">
+                    <start>ue_rrc_connected</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; !nb_connection_release_bad &amp; 
+                        ue_down_link_info2_recv &amp; ue_up_link_info_sent 
+                    </condition>
+
+                    <actions>
+                        <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_start_cell_selection = TRUE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_connection_request_sent = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_is_connected = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_up_link_info_sent = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_down_link_info2_recv = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        
+                    </actions>
+                </transition>
+
+                <transition label="ue_T6">
+                    <start>ue_rrc_connected</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; nb_connection_release_bad &amp; 
+                        ue_down_link_info2_recv &amp; ue_up_link_info_sent 
+                    </condition>
+
+                    <actions>
+                        <action label="null_action">
+                            <channel label="chan_UE">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_start_cell_selection = TRUE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_connection_request_sent = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_is_connected = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_up_link_info_sent = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_down_link_info2_recv = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_cell_info_bad = TRUE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                
+
+            </transitions>
+        </FSM>
+
+        <FSM label="NB">
+
+            <states>
+                <state>nb_rrc_idle</state>
+                <state>nb_rrc_connected</state>
+            </states>
+
+            <init_state>nb_rrc_idle</init_state>
+
+            <transitions>
+
+                <transition label="nb_T1">
+                        <start>nb_rrc_idle</start>
+                        <end>nb_rrc_idle</end>
+
+                        <condition>
+                            chan_NB=chanNB_connection_request &amp; !nb_connection_setup_sent 
+                        </condition> 
+
+                        <actions>
+                            <action label="connection_setup">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="nb_connection_setup_sent = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            
+                        </actions>
+                </transition>
+
+                <transition label="nb_T2">
+                        <start>nb_rrc_idle</start>
+                        <end>nb_rrc_connected</end>
+
+                        <condition>
+                            chan_NB=chanNB_connection_complete &amp; nb_connection_setup_sent &amp; !nb_down_link_info_sent
+                        </condition> 
+
+                        <actions>
+                            <action label="down_link_info">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="nb_down_link_info_sent = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_is_connected = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                        </actions>
+                </transition>
+
+    
+                <transition label="nb_T3">
+                        <start>nb_rrc_connected</start>
+                        <end>nb_rrc_connected</end>
+
+                        <condition>
+                            chan_NB=chanNB_up_link_info 
+                        </condition> 
+
+                        <actions>
+                            <action label="down_link_info2">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="nb_down_link_info2_sent = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            
+                        </actions>
+                </transition>
+
+                <transition label="nb_T4">
+                        <start>nb_rrc_connected</start>
+                        <end>nb_rrc_connected</end>
+
+                        <condition>
+                            chan_NB=chanNB_up_link_info 
+                        </condition> 
+                            ue_is_connected &amp; !ue_is_connected
+                        <actions>
+                            <action label="null_action">
+                                <channel label="chan_NB">
+                                <start>UE</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                        </actions>
+                </transition>
+
+
+                <transition label="nb_T5">
+                        <start>nb_rrc_connected</start>
+                        <end>nb_rrc_idle</end>
+
+                        <condition>
+                            nb_down_link_info2_sent &amp; nb_down_link_info_sent
+                        </condition> 
+
+                        <actions>
+                            <action label="connection_release">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="nb_connection_release_sent = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_connection_setup_sent = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_down_link_info_sent = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_down_link_info2_sent = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            
+                        </actions>
+                </transition>
+
+
+
+
+            </transitions>
+        </FSM>
+
+    </FSMs>
+
+    <channels>
+        <channel label="chan_UE"> 
+            <start>NB</start>   
+            <end>UE</end>
+            <noisy>FALSE</noisy>
+        </channel>
+
+        <channel label="chan_NB">
+            <start>UE</start>
+            <end>NB</end>
+            <noisy>FALSE</noisy>
+        </channel>
+    </channels>
+
+    <injective_adversaries>
+        <adversary label="inj_adv_NB"> 
+            <activechannel>chan_UE</activechannel> 
+            <alwayson>TRUE</alwayson>
+        </adversary>
+
+        <adversary label="inj_adv_UE">
+            <activechannel>chan_NB</activechannel>
+            <alwayson>FALSE</alwayson>
+        </adversary>
+
+    </injective_adversaries>
+        
+
+                
+</system>

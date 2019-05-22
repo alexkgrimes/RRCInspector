@@ -4,19 +4,19 @@ VAR
 
 
 ------------------- Environment and State variables --------------------
-new_PLMN_selected	:	boolean;	
-ue_has_cell_info	:	boolean;	
-ue_RF_scan_started	:	boolean;	
-ue_RF_scan_completed	:	boolean;	
-ue_find_cell_started	:	boolean;	
-ue_find_cell_completed	:	boolean;	
-ue_found_suitable_cell	:	boolean;	
-ue_has_usim	:	boolean;	
-ue_monitoring_paging_channel	:	boolean;	
-ue_cell_reevaluation_started	:	boolean;	
-ue_connection_setup_bad	:	boolean;	
+AHHHHH	:	boolean;	
+ue_start_cell_selection	:	boolean;	
+ue_cell_info_bad	:	boolean;	
+ue_connection_request_sent	:	boolean;	
+nb_connection_setup_sent	:	boolean;	
 ue_is_connected	:	boolean;	
-nb_conn_req_bad	:	boolean;	
+nb_is_connected	:	boolean;	
+nb_down_link_info_sent	:	boolean;	
+nb_down_link_info2_sent	:	boolean;	
+ue_up_link_info_sent	:	boolean;	
+nb_connection_release_sent	:	boolean;	
+nb_connection_release_bad	:	boolean;	
+ue_down_link_info2_recv	:	boolean;	
 attacker_inject_message_chanUE	:	boolean	;
 attacker_inject_message_chanNB	:	boolean	;
 
@@ -26,123 +26,116 @@ attacker_inject_message_chanNB	:	boolean	;
 
 ue_state	:
 {
-	ue_init_state,
-	ue_initial_cell_selection,
-	ue_stored_info_cell_selection,
-	ue_camped_normally,
-	ue_connected,
-	ue_any_cell_selection
+	ue_rrc_idle,
+	ue_rrc_connected
 };
 
 ---------------- state for NB state machine ----------------
 
 nb_state	:
 {
-	nb_disconnected,
-	nb_conn_setup,
-	nb_conn_complete
+	nb_rrc_idle,
+	nb_rrc_connected
 };
 ------------ Possible UE actions ----------------
 
 ue_action	:
 {
-	ue_null_action,
-	ue_conn_req,
-	ue_cell_selected_complete,
-	ue_conn_complete,
-	ue_any_cell_operation,
-	ue_start_cell_selection
+	ue_connection_request,
+	ue_connection_complete,
+	ue_up_link_info,
+	ue_null_action
 };
 ------------ Possible NB actions ----------------
 
 nb_action	:
 {
 	nb_connection_setup,
-	nb_set_up_connection,
-	nb_null_action
+	nb_down_link_info,
+	nb_down_link_info2,
+	nb_null_action,
+	nb_connection_release
 };
 
 --------------- Adversarial channel from NB to UE ---------------
 
 chan_UE	:
 {
+	chanUE_null_action,
 	chanUE_connection_setup,
-	chanUE_null_action
+	chanUE_down_link_info,
+	chanUE_down_link_info2,
+	chanUE_connection_release
 };
 
 --------------- Adversarial channel from UE to NB ---------------
 
 chan_NB	:
 {
-	chanNB_conn_req,
-	chanNB_conn_complete,
+	chanNB_connection_request,
+	chanNB_connection_complete,
+	chanNB_up_link_info,
 	chanNB_null_action
 };
 
 --------------- Injection adversary action for channel chan_UE ---------------
 
-inj_adv_act_UE	:
+inj_adv_act_NB	:
 {
-	adv_UE_connection_setup,
-	adv_UE_null_action
+	adv_NB_null_action,
+	adv_NB_connection_release
 };
 
 --------------- Injection adversary action for channel chan_NB ---------------
 
-inj_adv_act_NB	:
+inj_adv_act_UE	:
 {
-	adv_NB_conn_req,
-	adv_NB_conn_complete,
-	adv_NB_null_action
+	adv_UE_connection_request,
+	adv_UE_connection_complete,
+	adv_UE_up_link_info,
+	adv_UE_null_action
 };
 
 
 DEFINE
 
 -----------------UE transitions --------------------
-ue_T1	:=	 (ue_state = ue_init_state & 
-                        ue_has_cell_info & !ue_found_suitable_cell
+ue_T1	:=	 (ue_state = ue_rrc_idle & 
+                         ue_start_cell_selection & !ue_cell_info_bad & !ue_connection_request_sent & !ue_is_connected 
                     )	;
-ue_T2	:=	 (ue_state = ue_stored_info_cell_selection & 
-                        ue_has_cell_info & ue_find_cell_started & !ue_found_suitable_cell
+ue_T2	:=	 (ue_state = ue_rrc_idle & 
+                        chan_UE=chanUE_connection_setup & ue_connection_request_sent 
                     )	;
-ue_T3	:=	 (ue_state = ue_stored_info_cell_selection & 
-                        ue_has_cell_info & ue_find_cell_completed & ue_found_suitable_cell
+ue_T3	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_down_link_info & ue_is_connected & ue_connection_request_sent 
                     )	;
-ue_T4	:=	 (ue_state = ue_stored_info_cell_selection & 
-                        ue_has_cell_info & !ue_found_suitable_cell
+ue_T4	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_down_link_info2 & ue_is_connected & ue_up_link_info_sent & ue_connection_request_sent
                     )	;
-ue_T5	:=	 (ue_state = ue_init_state & 
-                        !ue_has_cell_info & !ue_found_suitable_cell
+ue_T5	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_connection_release & ue_is_connected & !nb_connection_release_bad & 
+                        ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
-ue_T6	:=	 (ue_state = ue_initial_cell_selection & 
-                        ue_RF_scan_started & !ue_found_suitable_cell 
-                    )	;
-ue_T7	:=	 (ue_state = ue_initial_cell_selection & 
-                        ue_RF_scan_completed & ue_found_suitable_cell
-                    )	;
-ue_T8	:=	 (ue_state = ue_camped_normally & 
-                        chan_UE=chanUE_connection_setup & !ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
-                    )	;
-ue_T9	:=	 (ue_state = ue_camped_normally & 
-                        chan_UE=chanUE_connection_setup & ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
-                    )	;
-ue_T10	:=	 (ue_state = ue_initial_cell_selection & 
-                        ue_RF_scan_completed & !ue_found_suitable_cell
-                    )	;
-ue_T11	:=	 (ue_state = ue_any_cell_selection & 
-                        ue_has_usim & !ue_found_suitable_cell
+ue_T6	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_connection_release & ue_is_connected & nb_connection_release_bad & 
+                        ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
 
 -----------------NB transitions --------------------
-nb_T1	:=	 (nb_state = nb_disconnected & 
-                            chan_NB=chanNB_conn_req & !nb_conn_req_bad
+nb_T1	:=	 (nb_state = nb_rrc_idle & 
+                            chan_NB=chanNB_connection_request & !nb_connection_setup_sent 
                         )	;
-nb_T2	:=	 (nb_state = nb_conn_setup & 
-                            chan_NB=chanNB_conn_complete
+nb_T2	:=	 (nb_state = nb_rrc_idle & 
+                            chan_NB=chanNB_connection_complete & nb_connection_setup_sent & !nb_down_link_info_sent
                         )	;
-nb_T3	:=	 (nb_state = nb_disconnected & 
-                            chan_NB=chanNB_conn_complete & nb_conn_req_bad
+nb_T3	:=	 (nb_state = nb_rrc_connected & 
+                            chan_NB=chanNB_up_link_info 
+                        )	;
+nb_T4	:=	 (nb_state = nb_rrc_connected & 
+                            chan_NB=chanNB_up_link_info 
+                        )	;
+nb_T5	:=	 (nb_state = nb_rrc_connected & 
+                            nb_down_link_info2_sent & nb_down_link_info_sent
                         )	;
 
 ------------------- Noisy Channels --------------------
@@ -150,8 +143,8 @@ noisy_channel_UE:=	FALSE;
 noisy_channel_NB:=	FALSE;
 
 ------------------- Adversary enabled or not --------------------
+inj_adv_NB_enabled:=	TRUE;
 inj_adv_UE_enabled:=	FALSE;
-inj_adv_NB_enabled:=	FALSE;
 
 
 ASSIGN
@@ -159,59 +152,56 @@ ASSIGN
 
 ------------------- Adversarial state machines --------------------
 
+init(inj_adv_act_NB)	:=
+{
+	adv_NB_null_action,
+	adv_NB_connection_release
+};
+
+next(inj_adv_act_NB)	:=	case
+TRUE	:	{
+	adv_NB_null_action,
+	adv_NB_connection_release
+};
+esac	;
+
 init(inj_adv_act_UE)	:=
 {
-	adv_UE_connection_setup,
+	adv_UE_connection_request,
+	adv_UE_connection_complete,
+	adv_UE_up_link_info,
 	adv_UE_null_action
 };
 
 next(inj_adv_act_UE)	:=	case
 TRUE	:	{
-	adv_UE_connection_setup,
+	adv_UE_connection_request,
+	adv_UE_connection_complete,
+	adv_UE_up_link_info,
 	adv_UE_null_action
-};
-esac	;
-
-init(inj_adv_act_NB)	:=
-{
-	adv_NB_conn_req,
-	adv_NB_conn_complete,
-	adv_NB_null_action
-};
-
-next(inj_adv_act_NB)	:=	case
-TRUE	:	{
-	adv_NB_conn_req,
-	adv_NB_conn_complete,
-	adv_NB_null_action
 };
 esac	;
 
 
 ---------------UE state machine ------------------
 
-init(ue_state)	:=ue_init_state;
+init(ue_state)	:=ue_rrc_idle;
 
 next(ue_state)	:=	 case
 
-(ue_T11 )	:	ue_init_state	;
-(ue_T4 | ue_T5 | ue_T6 )	:	ue_initial_cell_selection	;
-(ue_T1 | ue_T2 )	:	ue_stored_info_cell_selection	;
-(ue_T3 | ue_T7 | ue_T9 )	:	ue_camped_normally	;
-(ue_T8 )	:	ue_connected	;
-(ue_T10 )	:	ue_any_cell_selection	;
+(ue_T1 | ue_T5 | ue_T6 )	:	ue_rrc_idle	;
+(ue_T2 | ue_T3 | ue_T4 )	:	ue_rrc_connected	;
 TRUE	:	ue_state	;
 esac	;
 
 ---------------NB state machine ------------------
 
-init(nb_state)	:=nb_disconnected;
+init(nb_state)	:=nb_rrc_idle;
 
 next(nb_state)	:=	 case
 
-(nb_T3 )	:	nb_disconnected	;
-(nb_T1 )	:	nb_conn_setup	;
-(nb_T2 )	:	nb_conn_complete	;
+(nb_T1 | nb_T5 )	:	nb_rrc_idle	;
+(nb_T2 | nb_T3 | nb_T4 )	:	nb_rrc_connected	;
 TRUE	:	nb_state	;
 esac	;
 
@@ -220,12 +210,10 @@ init(ue_action)	:= ue_null_action	;
 
 next(ue_action)	:=	 case
 
-(ue_T1 | ue_T2 | ue_T4 | ue_T5 | ue_T6 | ue_T9 )	:	ue_null_action	;
-(ue_T3 | ue_T7 )	:	ue_conn_req	;
-(ue_T3 | ue_T7 )	:	ue_cell_selected_complete	;
-(ue_T8 )	:	ue_conn_complete	;
-(ue_T10 )	:	ue_any_cell_operation	;
-(ue_T11 )	:	ue_start_cell_selection	;
+(ue_T1 )	:	ue_connection_request	;
+(ue_T2 )	:	ue_connection_complete	;
+(ue_T3 )	:	ue_up_link_info	;
+(ue_T4 | ue_T5 | ue_T6 )	:	ue_null_action	;
 TRUE	:	ue_null_action	;
 esac	;
 
@@ -235,23 +223,31 @@ init(nb_action)	:= nb_null_action	;
 next(nb_action)	:=	 case
 
 (nb_T1 )	:	nb_connection_setup	;
-(nb_T1 )	:	nb_set_up_connection	;
-(nb_T2 | nb_T3 )	:	nb_null_action	;
+(nb_T2 )	:	nb_down_link_info	;
+(nb_T3 )	:	nb_down_link_info2	;
+(nb_T4 )	:	nb_null_action	;
+(nb_T5 )	:	nb_connection_release	;
 TRUE	:	nb_null_action	;
 esac	;
 
 init(chan_UE)	:=	chanUE_null_action;
 
 next(chan_UE)	:=	 case
-attacker_inject_message_chanUE	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_setup	:	chanUE_connection_setup	;
-attacker_inject_message_chanUE	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_null_action	:	chanUE_null_action	;
-! noisy_channel_UE	&	nb_action	=	 nb_connection_setup	:	chanUE_connection_setup	;
+attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_null_action	:	chanUE_null_action	;
+attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_connection_release	:	chanUE_connection_release	;
 ! noisy_channel_UE	&	nb_action	=	 nb_null_action	:	chanUE_null_action	;
+! noisy_channel_UE	&	nb_action	=	 nb_connection_setup	:	chanUE_connection_setup	;
+! noisy_channel_UE	&	nb_action	=	 nb_down_link_info	:	chanUE_down_link_info	;
+! noisy_channel_UE	&	nb_action	=	 nb_down_link_info2	:	chanUE_down_link_info2	;
+! noisy_channel_UE	&	nb_action	=	 nb_connection_release	:	chanUE_connection_release	;
 
 TRUE	:
 {
+	chanUE_null_action,
 	chanUE_connection_setup,
-	chanUE_null_action
+	chanUE_down_link_info,
+	chanUE_down_link_info2,
+	chanUE_connection_release
 }	;
 esac	;
 
@@ -259,84 +255,60 @@ esac	;
 init(chan_NB)	:=	chanNB_null_action;
 
 next(chan_NB)	:=	 case
-attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_conn_req	:	chanNB_conn_req	;
-attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_conn_complete	:	chanNB_conn_complete	;
-attacker_inject_message_chanNB	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_null_action	:	chanNB_null_action	;
-! noisy_channel_NB	&	ue_action	=	 ue_conn_req	:	chanNB_conn_req	;
-! noisy_channel_NB	&	ue_action	=	 ue_conn_complete	:	chanNB_conn_complete	;
+attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_request	:	chanNB_connection_request	;
+attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_complete	:	chanNB_connection_complete	;
+attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_up_link_info	:	chanNB_up_link_info	;
+attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_null_action	:	chanNB_null_action	;
+! noisy_channel_NB	&	ue_action	=	 ue_connection_request	:	chanNB_connection_request	;
+! noisy_channel_NB	&	ue_action	=	 ue_connection_complete	:	chanNB_connection_complete	;
+! noisy_channel_NB	&	ue_action	=	 ue_up_link_info	:	chanNB_up_link_info	;
 ! noisy_channel_NB	&	ue_action	=	 ue_null_action	:	chanNB_null_action	;
 
 TRUE	:
 {
-	chanNB_conn_req,
-	chanNB_conn_complete,
+	chanNB_connection_request,
+	chanNB_connection_complete,
+	chanNB_up_link_info,
 	chanNB_null_action
 }	;
 esac	;
 
 
 
-init(ue_has_cell_info)	:= FALSE	;
+init(ue_start_cell_selection)	:= TRUE	;
 
-next(ue_has_cell_info)	:=	 case
-(ue_T4 )	:	FALSE	;
-TRUE	:	ue_has_cell_info	;
+next(ue_start_cell_selection)	:=	 case
+(ue_T5 | ue_T6 )	:	TRUE	;
+TRUE	:	ue_start_cell_selection	;
 esac	;
 
 
 
-init(ue_RF_scan_started)	:= FALSE	;
+init(ue_cell_info_bad)	:= FALSE	;
 
-next(ue_RF_scan_started)	:=	 case
-(ue_T5 )	:	TRUE	;
-TRUE	:	ue_RF_scan_started	;
-esac	;
-
-
-
-init(ue_RF_scan_completed)	:= FALSE	;
-
-next(ue_RF_scan_completed)	:=	 case
+next(ue_cell_info_bad)	:=	 case
 (ue_T6 )	:	TRUE	;
-TRUE	:	ue_RF_scan_completed	;
+TRUE	:	ue_cell_info_bad	;
 esac	;
 
 
 
-init(ue_find_cell_started)	:= FALSE	;
+init(ue_connection_request_sent)	:= FALSE	;
 
-next(ue_find_cell_started)	:=	 case
+next(ue_connection_request_sent)	:=	 case
 (ue_T1 )	:	TRUE	;
-(ue_T11 )	:	FALSE	;
-TRUE	:	ue_find_cell_started	;
+(ue_T5 | ue_T6 )	:	FALSE	;
+TRUE	:	ue_connection_request_sent	;
 esac	;
 
 
 
-init(ue_find_cell_completed)	:= FALSE	;
+init(nb_connection_setup_sent)	:= FALSE	;
 
-next(ue_find_cell_completed)	:=	 case
-(ue_T2 )	:	TRUE	;
-(ue_T4 | ue_T11 )	:	FALSE	;
-TRUE	:	ue_find_cell_completed	;
-esac	;
-
-
-
-init(ue_monitoring_paging_channel)	:= FALSE	;
-
-next(ue_monitoring_paging_channel)	:=	 case
-(ue_T3 | ue_T7 | ue_T10 )	:	TRUE	;
-TRUE	:	ue_monitoring_paging_channel	;
-esac	;
-
-
-
-init(ue_cell_reevaluation_started)	:= FALSE	;
-
-next(ue_cell_reevaluation_started)	:=	 case
-(ue_T10 )	:	TRUE	;
-TRUE	:	ue_cell_reevaluation_started	;
+next(nb_connection_setup_sent)	:=	 case
+(nb_T1 )	:	TRUE	;
+(nb_T5 )	:	FALSE	;
+TRUE	:	nb_connection_setup_sent	;
 esac	;
 
 
@@ -344,12 +316,71 @@ esac	;
 init(ue_is_connected)	:= FALSE	;
 
 next(ue_is_connected)	:=	 case
-(ue_T8 )	:	TRUE	;
+(ue_T2 )	:	TRUE	;
+(ue_T5 | ue_T6 )	:	FALSE	;
 TRUE	:	ue_is_connected	;
 esac	;
 
 
-LTLSPEC !nb_conn_req_bad -> F(ue_is_connected)
+
+init(nb_is_connected)	:= FALSE	;
+
+next(nb_is_connected)	:=	 case
+(nb_T2 )	:	TRUE	;
+TRUE	:	nb_is_connected	;
+esac	;
+
+
+
+init(nb_down_link_info_sent)	:= FALSE	;
+
+next(nb_down_link_info_sent)	:=	 case
+(nb_T2 )	:	TRUE	;
+(nb_T5 )	:	FALSE	;
+TRUE	:	nb_down_link_info_sent	;
+esac	;
+
+
+
+init(nb_down_link_info2_sent)	:= FALSE	;
+
+next(nb_down_link_info2_sent)	:=	 case
+(nb_T3 )	:	TRUE	;
+(nb_T5 )	:	FALSE	;
+TRUE	:	nb_down_link_info2_sent	;
+esac	;
+
+
+
+init(ue_up_link_info_sent)	:= FALSE	;
+
+next(ue_up_link_info_sent)	:=	 case
+(ue_T3 )	:	TRUE	;
+(ue_T5 | ue_T6 )	:	FALSE	;
+TRUE	:	ue_up_link_info_sent	;
+esac	;
+
+
+
+init(nb_connection_release_sent)	:= FALSE	;
+
+next(nb_connection_release_sent)	:=	 case
+(nb_T5 )	:	TRUE	;
+TRUE	:	nb_connection_release_sent	;
+esac	;
+
+
+
+init(ue_down_link_info2_recv)	:= FALSE	;
+
+next(ue_down_link_info2_recv)	:=	 case
+(ue_T4 )	:	TRUE	;
+(ue_T5 | ue_T6 )	:	FALSE	;
+TRUE	:	ue_down_link_info2_recv	;
+esac	;
+
+
+LTLSPEC G(ue_start_cell_selection & !ue_cell_info_bad)
 
 ---Old properties from SMF state machine
 

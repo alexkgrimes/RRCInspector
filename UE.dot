@@ -1,54 +1,32 @@
 digraph UE{
 rankdir = LR;
 size = "8,5"
-node [shape = circle, label="ue_init_state"]ue_init_state;
-node [shape = circle, label="ue_initial_cell_selection"]ue_initial_cell_selection;
-node [shape = circle, label="ue_stored_info_cell_selection"]ue_stored_info_cell_selection;
-node [shape = circle, label="ue_camped_normally"]ue_camped_normally;
-node [shape = circle, label="ue_connected"]ue_connected;
-node [shape = circle, label="ue_any_cell_selection"]ue_any_cell_selection;
-ue_init_state -> ue_stored_info_cell_selection [label = "ue_T1: 
-                        ue_has_cell_info & !ue_found_suitable_cell
+node [shape = circle, label="ue_rrc_idle"]ue_rrc_idle;
+node [shape = circle, label="ue_rrc_connected"]ue_rrc_connected;
+ue_rrc_idle -> ue_rrc_idle [label = "ue_T1: 
+                         ue_start_cell_selection & !ue_cell_info_bad & !ue_connection_request_sent & !ue_is_connected 
                     /
-null_action, ue_find_cell_started = TRUE"]
-ue_stored_info_cell_selection -> ue_stored_info_cell_selection [label = "ue_T2: 
-                        ue_has_cell_info & ue_find_cell_started & !ue_found_suitable_cell
+connection_request, ue_connection_request_sent = TRUE"]
+ue_rrc_idle -> ue_rrc_connected [label = "ue_T2: 
+                        chan_UE=chanUE_connection_setup & ue_connection_request_sent 
                     /
-null_action, ue_find_cell_completed = TRUE"]
-ue_stored_info_cell_selection -> ue_camped_normally [label = "ue_T3: 
-                        ue_has_cell_info & ue_find_cell_completed & ue_found_suitable_cell
+connection_complete, ue_is_connected = TRUE"]
+ue_rrc_connected -> ue_rrc_connected [label = "ue_T3: 
+                        chan_UE=chanUE_down_link_info & ue_is_connected & ue_connection_request_sent 
                     /
-conn_req, cell_selected_complete, ue_monitoring_paging_channel = TRUE"]
-ue_stored_info_cell_selection -> ue_initial_cell_selection [label = "ue_T4: 
-                        ue_has_cell_info & !ue_found_suitable_cell
+up_link_info, ue_up_link_info_sent = TRUE"]
+ue_rrc_connected -> ue_rrc_connected [label = "ue_T4: 
+                        chan_UE=chanUE_down_link_info2 & ue_is_connected & ue_up_link_info_sent & ue_connection_request_sent
                     /
-null_action, ue_find_cell_completed = FALSE, ue_has_cell_info = FALSE"]
-ue_init_state -> ue_initial_cell_selection [label = "ue_T5: 
-                        !ue_has_cell_info & !ue_found_suitable_cell
+null_action, ue_down_link_info2_recv = TRUE"]
+ue_rrc_connected -> ue_rrc_idle [label = "ue_T5: 
+                        chan_UE=chanUE_connection_release & ue_is_connected & !nb_connection_release_bad & 
+                        ue_down_link_info2_recv & ue_up_link_info_sent 
                     /
-null_action, ue_RF_scan_started = TRUE"]
-ue_initial_cell_selection -> ue_initial_cell_selection [label = "ue_T6: 
-                        ue_RF_scan_started & !ue_found_suitable_cell 
+null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE"]
+ue_rrc_connected -> ue_rrc_idle [label = "ue_T6: 
+                        chan_UE=chanUE_connection_release & ue_is_connected & nb_connection_release_bad & 
+                        ue_down_link_info2_recv & ue_up_link_info_sent 
                     /
-null_action, ue_RF_scan_completed = TRUE"]
-ue_initial_cell_selection -> ue_camped_normally [label = "ue_T7: 
-                        ue_RF_scan_completed & ue_found_suitable_cell
-                    /
-conn_req, cell_selected_complete, ue_monitoring_paging_channel = TRUE"]
-ue_camped_normally -> ue_connected [label = "ue_T8: 
-                        chan_UE=chanUE_connection_setup & !ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
-                    /
-conn_complete, ue_is_connected = TRUE"]
-ue_camped_normally -> ue_camped_normally [label = "ue_T9: 
-                        chan_UE=chanUE_connection_setup & ue_connection_setup_bad & ue_RF_scan_completed & ue_found_suitable_cell 
-                    /
-null_action"]
-ue_initial_cell_selection -> ue_any_cell_selection [label = "ue_T10: 
-                        ue_RF_scan_completed & !ue_found_suitable_cell
-                    /
-any_cell_operation, ue_monitoring_paging_channel = TRUE, ue_cell_reevaluation_started = TRUE"]
-ue_any_cell_selection -> ue_init_state [label = "ue_T11: 
-                        ue_has_usim & !ue_found_suitable_cell
-                    /
-start_cell_selection, ue_find_cell_started = FALSE, ue_find_cell_completed = FALSE"]
+null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_cell_info_bad = TRUE"]
 }
