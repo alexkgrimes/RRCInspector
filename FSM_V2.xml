@@ -44,12 +44,42 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
+        <VAR label="nb_MIB_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_MIB_received">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_SIBs_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_SIBs_received">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+    
          <VAR label="ue_cell_info_bad">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
+
 
         <VAR label="ue_connection_request_sent">
                 <datatype>boolean</datatype>
@@ -195,7 +225,55 @@
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                         ue_start_cell_selection &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                        chan_UE=chanUE_MIB &amp; ue_start_cell_selection &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="null_action">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_MIB_received = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="ue_T4">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         chan_UE=chanUE_SIBs &amp; ue_start_cell_selection &amp; ue_MIB_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="null_action">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_SIBs_received = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="ue_T5">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         ue_start_cell_selection &amp; ue_MIB_received &amp; ue_SIBs_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
                     </condition>
 
                     <actions>
@@ -215,7 +293,7 @@
                 </transition>
 
                 
-                <transition label="ue_T4">
+                <transition label="ue_T6">
                     <start>ue_rrc_idle</start>
                     <end>ue_rrc_connected</end>
 
@@ -240,7 +318,7 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T5">
+                <transition label="ue_T7">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_connected</end>
 
@@ -265,7 +343,7 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T6">
+                <transition label="ue_T8">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_connected</end>
 
@@ -290,7 +368,7 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T7">
+                <transition label="ue_T9">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_idle</end>
 
@@ -302,7 +380,7 @@
 
                     <actions>
                         <action label="null_action">
-                            <channel label="chan_UE">
+                            <channel label="chan_NB">
                             <start>UE</start>
                             <end>NB</end>
                             </channel>
@@ -355,26 +433,31 @@
                             <end>UE</end>
                             </channel>
                         </action>
+                        <action label="ue_MIB_received = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
 
                         
                     </actions>
                 </transition>
 
-                <transition label="ue_T8">
+                <transition label="ue_T10">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; nb_bad_carrier_redirection_info
-             &amp; 
+                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; nb_bad_carrier_redirection_info &amp; 
                         ue_down_link_info2_recv &amp; ue_up_link_info_sent 
                     </condition>
 
                     <actions>
                         <action label="null_action">
                             <channel label="chan_UE">
-                            <start>UE</start>
-                            <end>NB</end>
+                            <start>NB</start>
+                            <end>UE</end>
                             </channel>
                         </action>
                         <action label="ue_start_cell_selection = TRUE">
@@ -431,6 +514,12 @@
                             <end>UE</end>
                             </channel>
                         </action>  
+                        <action label="ue_MIB_received = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
                     </actions>
                 </transition>
 
@@ -463,7 +552,67 @@
                         <end>nb_rrc_idle</end>
 
                         <condition>
-                            chan_NB=chanNB_connection_request &amp; !nb_connection_setup_sent 
+                            ue_monitoring_paging_channel  &amp; !nb_down_link_info_sent &amp; !nb_MIB_sent &amp; nb_connection_release_sent
+                        </condition> 
+
+                        <actions>
+                            <action label="MIB">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="nb_connection_release_sent = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_MIB_sent = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            
+                        </actions>
+                </transition>
+
+
+
+                <transition label="nb_T2">
+                        <start>nb_rrc_idle</start>
+                        <end>nb_rrc_idle</end>
+
+                        <condition>
+                            nb_MIB_sent &amp; ue_monitoring_paging_channel &amp; !nb_connection_setup_sent &amp; !nb_down_link_info_sent &amp; !nb_SIBs_sent
+                        </condition> 
+
+                        <actions>
+                            <action label="SIBs">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="nb_SIBs_sent = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            
+                        </actions>
+                </transition>
+
+                
+
+                <transition label="nb_T3">
+                        <start>nb_rrc_idle</start>
+                        <end>nb_rrc_idle</end>
+
+                        <condition>
+                            chan_NB=chanNB_connection_request &amp; !nb_connection_setup_sent &amp; nb_MIB_sent &amp; nb_SIBs_sent
                         </condition> 
 
                         <actions>
@@ -483,7 +632,7 @@
                         </actions>
                 </transition>
 
-                <transition label="nb_T2">
+                <transition label="nb_T4">
                         <start>nb_rrc_idle</start>
                         <end>nb_rrc_connected</end>
 
@@ -514,7 +663,7 @@
                 </transition>
 
     
-                <transition label="nb_T3">
+                <transition label="nb_T5">
                         <start>nb_rrc_connected</start>
                         <end>nb_rrc_connected</end>
 
@@ -539,7 +688,7 @@
                         </actions>
                 </transition>
 
-                <transition label="nb_T4">
+                <transition label="nb_T6">
                         <start>nb_rrc_connected</start>
                         <end>nb_rrc_connected</end>
 
@@ -558,7 +707,7 @@
                 </transition>
 
 
-                <transition label="nb_T5">
+                <transition label="nb_T7">
                         <start>nb_rrc_connected</start>
                         <end>nb_rrc_idle</end>
 
@@ -592,6 +741,18 @@
                                 </channel>
                             </action>
                             <action label="nb_down_link_info2_sent = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_MIB_sent = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_SIBs_sent = FALSE">
                                 <channel label="internal">
                                 <start>NB</start>
                                 <end>NB</end>

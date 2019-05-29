@@ -12,31 +12,39 @@ ue_rrc_idle -> ue_rrc_idle [label = "ue_T2:
                     /
 null_action, ue_found_suitable_cell = TRUE, ue_monitoring_paging_channel = TRUE"]
 ue_rrc_idle -> ue_rrc_idle [label = "ue_T3: 
-                         ue_start_cell_selection & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
+                        chan_UE=chanUE_MIB & ue_start_cell_selection & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
+                    /
+null_action, ue_MIB_received = TRUE"]
+ue_rrc_idle -> ue_rrc_idle [label = "ue_T4: 
+                         chan_UE=chanUE_SIBs & ue_start_cell_selection & ue_MIB_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
+                    /
+null_action, ue_SIBs_received = TRUE"]
+ue_rrc_idle -> ue_rrc_idle [label = "ue_T5: 
+                         ue_start_cell_selection & ue_MIB_received & ue_SIBs_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     /
 connection_request, ue_connection_request_sent = TRUE"]
-ue_rrc_idle -> ue_rrc_connected [label = "ue_T4: 
+ue_rrc_idle -> ue_rrc_connected [label = "ue_T6: 
                         chan_UE=chanUE_connection_setup & ue_connection_request_sent 
                     /
 connection_complete, ue_is_connected = TRUE"]
-ue_rrc_connected -> ue_rrc_connected [label = "ue_T5: 
+ue_rrc_connected -> ue_rrc_connected [label = "ue_T7: 
                         chan_UE=chanUE_down_link_info & ue_is_connected & ue_connection_request_sent 
                     /
 up_link_info, ue_up_link_info_sent = TRUE"]
-ue_rrc_connected -> ue_rrc_connected [label = "ue_T6: 
+ue_rrc_connected -> ue_rrc_connected [label = "ue_T8: 
                         chan_UE=chanUE_down_link_info2 & ue_is_connected & ue_up_link_info_sent & ue_connection_request_sent
                     /
 null_action, ue_down_link_info2_recv = TRUE"]
-ue_rrc_connected -> ue_rrc_idle [label = "ue_T7: 
+ue_rrc_connected -> ue_rrc_idle [label = "ue_T9: 
                         chan_UE=chanUE_connection_release & ue_is_connected & !nb_bad_carrier_redirection_info
              & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     /
-null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE"]
-ue_rrc_connected -> ue_rrc_idle [label = "ue_T8: 
+null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE, ue_MIB_received = FALSE"]
+ue_rrc_connected -> ue_rrc_idle [label = "ue_T10: 
                         chan_UE=chanUE_connection_release & ue_is_connected & nb_bad_carrier_redirection_info
              & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     /
-null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_cell_info_bad = TRUE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE"]
+null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_cell_info_bad = TRUE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE, ue_MIB_received = FALSE"]
 }

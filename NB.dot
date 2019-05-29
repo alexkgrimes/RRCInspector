@@ -4,23 +4,31 @@ size = "8,5"
 node [shape = circle, label="nb_rrc_idle"]nb_rrc_idle;
 node [shape = circle, label="nb_rrc_connected"]nb_rrc_connected;
 nb_rrc_idle -> nb_rrc_idle [label = "nb_T1: 
-                            chan_NB=chanNB_connection_request & !nb_connection_setup_sent 
+                            ue_monitoring_paging_channel  & !nb_down_link_info_sent & !nb_MIB_sent & nb_connection_release_sent
+                        /
+MIB, nb_connection_release_sent = FALSE, nb_MIB_sent = TRUE"]
+nb_rrc_idle -> nb_rrc_idle [label = "nb_T2: 
+                            nb_MIB_sent & ue_monitoring_paging_channel & !nb_connection_setup_sent & !nb_down_link_info_sent & !nb_SIBs_sent
+                        /
+SIBs, nb_SIBs_sent = TRUE"]
+nb_rrc_idle -> nb_rrc_idle [label = "nb_T3: 
+                            chan_NB=chanNB_connection_request & !nb_connection_setup_sent & nb_MIB_sent & nb_SIBs_sent
                         /
 connection_setup, nb_connection_setup_sent = TRUE"]
-nb_rrc_idle -> nb_rrc_connected [label = "nb_T2: 
+nb_rrc_idle -> nb_rrc_connected [label = "nb_T4: 
                             chan_NB=chanNB_connection_complete & nb_connection_setup_sent & !nb_down_link_info_sent
                         /
 down_link_info, nb_down_link_info_sent = TRUE, nb_is_connected = TRUE"]
-nb_rrc_connected -> nb_rrc_connected [label = "nb_T3: 
+nb_rrc_connected -> nb_rrc_connected [label = "nb_T5: 
                             chan_NB=chanNB_up_link_info 
                         /
 down_link_info2, nb_down_link_info2_sent = TRUE"]
-nb_rrc_connected -> nb_rrc_connected [label = "nb_T4: 
+nb_rrc_connected -> nb_rrc_connected [label = "nb_T6: 
                             chan_NB=chanNB_up_link_info 
                         /
 null_action"]
-nb_rrc_connected -> nb_rrc_idle [label = "nb_T5: 
+nb_rrc_connected -> nb_rrc_idle [label = "nb_T7: 
                             nb_down_link_info2_sent & nb_down_link_info_sent
                         /
-connection_release, nb_connection_release_sent = TRUE, nb_connection_setup_sent = FALSE, nb_down_link_info_sent = FALSE, nb_down_link_info2_sent = FALSE"]
+connection_release, nb_connection_release_sent = TRUE, nb_connection_setup_sent = FALSE, nb_down_link_info_sent = FALSE, nb_down_link_info2_sent = FALSE, nb_MIB_sent = FALSE, nb_SIBs_sent = FALSE"]
 }
