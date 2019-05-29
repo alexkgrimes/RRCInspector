@@ -2,13 +2,6 @@
 
     <VARS>
 
-        <VAR label="AHHHHH">
-                <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
-                <initialvalue>FALSE</initialvalue>
-        </VAR>
-
         <VAR label="ue_start_cell_selection">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
@@ -32,9 +25,9 @@
 
         <VAR label="ue_found_suitable_cell">
                 <datatype>boolean</datatype>
-                <controltype>environment</controltype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
-                <fsm>UE</fsm>
         </VAR>
 
         <VAR label="ue_monitoring_paging_channel">
@@ -44,21 +37,7 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="nb_MIB_sent">
-                <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
-                <initialvalue>FALSE</initialvalue>
-        </VAR>
-
         <VAR label="ue_MIB_received">
-                <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
-                <initialvalue>FALSE</initialvalue>
-        </VAR>
-
-        <VAR label="nb_SIBs_sent">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
@@ -79,6 +58,61 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
+         <VAR label="ue_cell_info_bad">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_connection_request_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+         <VAR label="ue_is_connected">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_up_link_info_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_down_link_info2_recv">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_is_connected">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_MIB_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_SIBs_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
 
         <VAR label="nb_PRACH_preamble_received">
                 <datatype>boolean</datatype>
@@ -94,40 +128,7 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-
-        
-
-    
-         <VAR label="ue_cell_info_bad">
-                <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
-                <initialvalue>FALSE</initialvalue>
-        </VAR>
-
-
-        <VAR label="ue_connection_request_sent">
-                <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
-                <initialvalue>FALSE</initialvalue>
-        </VAR>
-
         <VAR label="nb_connection_setup_sent">
-                <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
-                <initialvalue>FALSE</initialvalue>
-        </VAR>
-
-        <VAR label="ue_is_connected">
-                <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
-                <initialvalue>FALSE</initialvalue>
-        </VAR>
-
-        <VAR label="nb_is_connected">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
@@ -148,14 +149,14 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="ue_up_link_info_sent">
+        <VAR label="nb_connection_release_sent">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="nb_connection_release_sent">
+        <VAR label="ue_cell_barred">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
                 <possiblevalues>TRUE,FALSE</possiblevalues>
@@ -168,14 +169,23 @@
                 <initialvalue>TRUE</initialvalue>
         </VAR>
 
-         <VAR label="ue_down_link_info2_recv">
+        <VAR label="SIB_category0Allowed">
                 <datatype>boolean</datatype>
-                <controltype>state</controltype>
-                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <controltype>environment</controltype>
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        
+        <VAR label="SIB_intraFreqReselection_allowed">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_is_category_0">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
 
     </VARS>
 
@@ -220,7 +230,7 @@
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                         ue_start_cell_selection &amp; ue_has_cell_info &amp; ue_stored_info_cell_selection_started &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                         ue_start_cell_selection &amp; ue_has_cell_info &amp; ue_stored_info_cell_selection_started &amp; !ue_connection_request_sent &amp; !ue_is_connected &amp; !ue_cell_barred
                     </condition>
 
                     <actions>
@@ -274,7 +284,7 @@
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                         chan_UE=chanUE_SIBs &amp; ue_start_cell_selection &amp; ue_MIB_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                         chan_UE=chanUE_SIBs &amp; SIB_category0Allowed &amp; SIB_intraFreqReselection_allowed &amp; ue_start_cell_selection &amp; ue_MIB_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
                     </condition>
 
                     <actions>
@@ -298,7 +308,79 @@
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                         chan_UE=chanUE_RACH_response &amp; ue_start_cell_selection &amp; ue_PRACH_preamble_sent &amp; ue_MIB_received &amp; ue_SIBs_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                         chan_UE=chanUE_SIBs &amp; SIB_category0Allowed &amp; !SIB_intraFreqReselection_allowed &amp; ue_start_cell_selection &amp; ue_MIB_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="null_action">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_cell_barred = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="ue_T6">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         chan_UE=chanUE_SIBs &amp; !ue_is_category_0 &amp; !SIB_category0Allowed &amp; ue_start_cell_selection &amp; ue_MIB_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="PRACH_preamble">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_PRACH_preamble_sent = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="ue_T7">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         chan_UE=chanUE_SIBs &amp; ue_is_category_0 &amp; !SIB_category0Allowed &amp; ue_start_cell_selection &amp; ue_MIB_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="null_action">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_cell_barred = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="ue_T8">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         chan_UE=chanUE_RACH_response &amp; !ue_cell_barred &amp; ue_start_cell_selection &amp; ue_PRACH_preamble_sent &amp; ue_MIB_received &amp; ue_SIBs_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
                     </condition>
 
                     <actions>
@@ -318,12 +400,12 @@
                 </transition>
 
                 
-                <transition label="ue_T6">
+                <transition label="ue_T9">
                     <start>ue_rrc_idle</start>
                     <end>ue_rrc_connected</end>
 
                     <condition>
-                        chan_UE=chanUE_connection_setup &amp; ue_connection_request_sent 
+                        chan_UE=chanUE_connection_setup &amp; ue_connection_request_sent &amp; !ue_cell_barred
                     </condition>
 
                     <actions>
@@ -343,12 +425,12 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T7">
+                <transition label="ue_T10">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_connected</end>
 
                     <condition>
-                        chan_UE=chanUE_down_link_info &amp; ue_is_connected &amp; ue_connection_request_sent 
+                        chan_UE=chanUE_down_link_info &amp; ue_is_connected &amp; ue_connection_request_sent &amp; !ue_cell_barred
                     </condition>
 
                     <actions>
@@ -368,12 +450,12 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T8">
+                <transition label="ue_T11">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_connected</end>
 
                     <condition>
-                        chan_UE=chanUE_down_link_info2 &amp; ue_is_connected &amp; ue_up_link_info_sent &amp; ue_connection_request_sent
+                        chan_UE=chanUE_down_link_info2 &amp; ue_is_connected &amp; ue_up_link_info_sent &amp; ue_connection_request_sent &amp; !ue_cell_barred
                     </condition>
 
                     <actions>
@@ -393,7 +475,7 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T9">
+                <transition label="ue_T12">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_idle</end>
 
@@ -470,13 +552,19 @@
                             <end>UE</end>
                             </channel>
                         </action>
+                        <action label="ue_cell_barred = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
 
 
                         
                     </actions>
                 </transition>
 
-                <transition label="ue_T10">
+                <transition label="ue_T13">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_idle</end>
 
@@ -558,13 +646,15 @@
                             <end>UE</end>
                             </channel>
                         </action>
-
+                        <action label="ue_cell_barred = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
                         
                     </actions>
                 </transition>
-
-                
-
             </transitions>
         </FSM>
 

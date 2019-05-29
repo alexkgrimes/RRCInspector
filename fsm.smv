@@ -4,30 +4,33 @@ VAR
 
 
 ------------------- Environment and State variables --------------------
-AHHHHH	:	boolean;	
 ue_start_cell_selection	:	boolean;	
 ue_has_cell_info	:	boolean;	
 ue_stored_info_cell_selection_started	:	boolean;	
 ue_found_suitable_cell	:	boolean;	
 ue_monitoring_paging_channel	:	boolean;	
-nb_MIB_sent	:	boolean;	
 ue_MIB_received	:	boolean;	
-nb_SIBs_sent	:	boolean;	
 ue_SIBs_received	:	boolean;	
 ue_PRACH_preamble_sent	:	boolean;	
-nb_PRACH_preamble_received	:	boolean;	
-nb_RACH_response_sent	:	boolean;	
 ue_cell_info_bad	:	boolean;	
 ue_connection_request_sent	:	boolean;	
-nb_connection_setup_sent	:	boolean;	
 ue_is_connected	:	boolean;	
+ue_up_link_info_sent	:	boolean;	
+ue_down_link_info2_recv	:	boolean;	
 nb_is_connected	:	boolean;	
+nb_MIB_sent	:	boolean;	
+nb_SIBs_sent	:	boolean;	
+nb_PRACH_preamble_received	:	boolean;	
+nb_RACH_response_sent	:	boolean;	
+nb_connection_setup_sent	:	boolean;	
 nb_down_link_info_sent	:	boolean;	
 nb_down_link_info2_sent	:	boolean;	
-ue_up_link_info_sent	:	boolean;	
 nb_connection_release_sent	:	boolean;	
+ue_cell_barred	:	boolean;	
 nb_bad_carrier_redirection_info	:	boolean;	
-ue_down_link_info2_recv	:	boolean;	
+SIB_category0Allowed	:	boolean;	
+SIB_intraFreqReselection_allowed	:	boolean;	
+ue_is_category_0	:	boolean;	
 attacker_inject_message_chanUE	:	boolean	;
 attacker_inject_message_chanNB	:	boolean	;
 
@@ -130,32 +133,41 @@ ue_T1	:=	 (ue_state = ue_rrc_idle &
                          ue_start_cell_selection & ue_has_cell_info & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T2	:=	 (ue_state = ue_rrc_idle & 
-                         ue_start_cell_selection & ue_has_cell_info & ue_stored_info_cell_selection_started & !ue_connection_request_sent & !ue_is_connected 
+                         ue_start_cell_selection & ue_has_cell_info & ue_stored_info_cell_selection_started & !ue_connection_request_sent & !ue_is_connected & !ue_cell_barred
                     )	;
 ue_T3	:=	 (ue_state = ue_rrc_idle & 
                         chan_UE=chanUE_MIB & ue_start_cell_selection & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T4	:=	 (ue_state = ue_rrc_idle & 
-                         chan_UE=chanUE_SIBs & ue_start_cell_selection & ue_MIB_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
+                         chan_UE=chanUE_SIBs & SIB_category0Allowed & SIB_intraFreqReselection_allowed & ue_start_cell_selection & ue_MIB_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T5	:=	 (ue_state = ue_rrc_idle & 
-                         chan_UE=chanUE_RACH_response & ue_start_cell_selection & ue_PRACH_preamble_sent & ue_MIB_received & ue_SIBs_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
+                         chan_UE=chanUE_SIBs & SIB_category0Allowed & !SIB_intraFreqReselection_allowed & ue_start_cell_selection & ue_MIB_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T6	:=	 (ue_state = ue_rrc_idle & 
-                        chan_UE=chanUE_connection_setup & ue_connection_request_sent 
+                         chan_UE=chanUE_SIBs & !ue_is_category_0 & !SIB_category0Allowed & ue_start_cell_selection & ue_MIB_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
-ue_T7	:=	 (ue_state = ue_rrc_connected & 
-                        chan_UE=chanUE_down_link_info & ue_is_connected & ue_connection_request_sent 
+ue_T7	:=	 (ue_state = ue_rrc_idle & 
+                         chan_UE=chanUE_SIBs & ue_is_category_0 & !SIB_category0Allowed & ue_start_cell_selection & ue_MIB_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
-ue_T8	:=	 (ue_state = ue_rrc_connected & 
-                        chan_UE=chanUE_down_link_info2 & ue_is_connected & ue_up_link_info_sent & ue_connection_request_sent
+ue_T8	:=	 (ue_state = ue_rrc_idle & 
+                         chan_UE=chanUE_RACH_response & !ue_cell_barred & ue_start_cell_selection & ue_PRACH_preamble_sent & ue_MIB_received & ue_SIBs_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
-ue_T9	:=	 (ue_state = ue_rrc_connected & 
+ue_T9	:=	 (ue_state = ue_rrc_idle & 
+                        chan_UE=chanUE_connection_setup & ue_connection_request_sent & !ue_cell_barred
+                    )	;
+ue_T10	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_down_link_info & ue_is_connected & ue_connection_request_sent & !ue_cell_barred
+                    )	;
+ue_T11	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_down_link_info2 & ue_is_connected & ue_up_link_info_sent & ue_connection_request_sent & !ue_cell_barred
+                    )	;
+ue_T12	:=	 (ue_state = ue_rrc_connected & 
                         chan_UE=chanUE_connection_release & ue_is_connected & !nb_bad_carrier_redirection_info
              & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
-ue_T10	:=	 (ue_state = ue_rrc_connected & 
+ue_T13	:=	 (ue_state = ue_rrc_connected & 
                         chan_UE=chanUE_connection_release & ue_is_connected & nb_bad_carrier_redirection_info & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
@@ -251,8 +263,8 @@ init(ue_state)	:=ue_rrc_idle;
 
 next(ue_state)	:=	 case
 
-(ue_T1 | ue_T2 | ue_T3 | ue_T4 | ue_T5 | ue_T9 | ue_T10 )	:	ue_rrc_idle	;
-(ue_T6 | ue_T7 | ue_T8 )	:	ue_rrc_connected	;
+(ue_T1 | ue_T2 | ue_T3 | ue_T4 | ue_T5 | ue_T6 | ue_T7 | ue_T8 | ue_T12 | ue_T13 )	:	ue_rrc_idle	;
+(ue_T9 | ue_T10 | ue_T11 )	:	ue_rrc_connected	;
 TRUE	:	ue_state	;
 esac	;
 
@@ -272,11 +284,11 @@ init(ue_action)	:= ue_null_action	;
 
 next(ue_action)	:=	 case
 
-(ue_T1 | ue_T2 | ue_T3 | ue_T8 | ue_T9 | ue_T10 )	:	ue_null_action	;
-(ue_T4 )	:	ue_PRACH_preamble	;
-(ue_T5 )	:	ue_connection_request	;
-(ue_T6 )	:	ue_connection_complete	;
-(ue_T7 )	:	ue_up_link_info	;
+(ue_T1 | ue_T2 | ue_T3 | ue_T5 | ue_T7 | ue_T11 | ue_T12 | ue_T13 )	:	ue_null_action	;
+(ue_T4 | ue_T6 )	:	ue_PRACH_preamble	;
+(ue_T8 )	:	ue_connection_request	;
+(ue_T9 )	:	ue_connection_complete	;
+(ue_T10 )	:	ue_up_link_info	;
 TRUE	:	ue_null_action	;
 esac	;
 
@@ -359,7 +371,7 @@ esac	;
 init(ue_start_cell_selection)	:= TRUE	;
 
 next(ue_start_cell_selection)	:=	 case
-(ue_T9 | ue_T10 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	TRUE	;
 TRUE	:	ue_start_cell_selection	;
 esac	;
 
@@ -369,8 +381,18 @@ init(ue_stored_info_cell_selection_started)	:= FALSE	;
 
 next(ue_stored_info_cell_selection_started)	:=	 case
 (ue_T1 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
 TRUE	:	ue_stored_info_cell_selection_started	;
+esac	;
+
+
+
+init(ue_found_suitable_cell)	:= FALSE	;
+
+next(ue_found_suitable_cell)	:=	 case
+(ue_T2 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_found_suitable_cell	;
 esac	;
 
 
@@ -379,8 +401,86 @@ init(ue_monitoring_paging_channel)	:= FALSE	;
 
 next(ue_monitoring_paging_channel)	:=	 case
 (ue_T2 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
 TRUE	:	ue_monitoring_paging_channel	;
+esac	;
+
+
+
+init(ue_MIB_received)	:= FALSE	;
+
+next(ue_MIB_received)	:=	 case
+(ue_T3 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_MIB_received	;
+esac	;
+
+
+
+init(ue_PRACH_preamble_sent)	:= FALSE	;
+
+next(ue_PRACH_preamble_sent)	:=	 case
+(ue_T4 | ue_T6 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_PRACH_preamble_sent	;
+esac	;
+
+
+
+init(ue_cell_info_bad)	:= FALSE	;
+
+next(ue_cell_info_bad)	:=	 case
+(ue_T13 )	:	TRUE	;
+TRUE	:	ue_cell_info_bad	;
+esac	;
+
+
+
+init(ue_connection_request_sent)	:= FALSE	;
+
+next(ue_connection_request_sent)	:=	 case
+(ue_T8 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_connection_request_sent	;
+esac	;
+
+
+
+init(ue_is_connected)	:= FALSE	;
+
+next(ue_is_connected)	:=	 case
+(ue_T9 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_is_connected	;
+esac	;
+
+
+
+init(ue_up_link_info_sent)	:= FALSE	;
+
+next(ue_up_link_info_sent)	:=	 case
+(ue_T10 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_up_link_info_sent	;
+esac	;
+
+
+
+init(ue_down_link_info2_recv)	:= FALSE	;
+
+next(ue_down_link_info2_recv)	:=	 case
+(ue_T11 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_down_link_info2_recv	;
+esac	;
+
+
+
+init(nb_is_connected)	:= FALSE	;
+
+next(nb_is_connected)	:=	 case
+(nb_T5 )	:	TRUE	;
+TRUE	:	nb_is_connected	;
 esac	;
 
 
@@ -395,32 +495,12 @@ esac	;
 
 
 
-init(ue_MIB_received)	:= FALSE	;
-
-next(ue_MIB_received)	:=	 case
-(ue_T3 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
-TRUE	:	ue_MIB_received	;
-esac	;
-
-
-
 init(nb_SIBs_sent)	:= FALSE	;
 
 next(nb_SIBs_sent)	:=	 case
 (nb_T2 )	:	TRUE	;
 (nb_T8 )	:	FALSE	;
 TRUE	:	nb_SIBs_sent	;
-esac	;
-
-
-
-init(ue_PRACH_preamble_sent)	:= FALSE	;
-
-next(ue_PRACH_preamble_sent)	:=	 case
-(ue_T4 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
-TRUE	:	ue_PRACH_preamble_sent	;
 esac	;
 
 
@@ -445,50 +525,12 @@ esac	;
 
 
 
-init(ue_cell_info_bad)	:= FALSE	;
-
-next(ue_cell_info_bad)	:=	 case
-(ue_T10 )	:	TRUE	;
-TRUE	:	ue_cell_info_bad	;
-esac	;
-
-
-
-init(ue_connection_request_sent)	:= FALSE	;
-
-next(ue_connection_request_sent)	:=	 case
-(ue_T5 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
-TRUE	:	ue_connection_request_sent	;
-esac	;
-
-
-
 init(nb_connection_setup_sent)	:= FALSE	;
 
 next(nb_connection_setup_sent)	:=	 case
 (nb_T4 )	:	TRUE	;
 (nb_T8 )	:	FALSE	;
 TRUE	:	nb_connection_setup_sent	;
-esac	;
-
-
-
-init(ue_is_connected)	:= FALSE	;
-
-next(ue_is_connected)	:=	 case
-(ue_T6 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
-TRUE	:	ue_is_connected	;
-esac	;
-
-
-
-init(nb_is_connected)	:= FALSE	;
-
-next(nb_is_connected)	:=	 case
-(nb_T5 )	:	TRUE	;
-TRUE	:	nb_is_connected	;
 esac	;
 
 
@@ -513,16 +555,6 @@ esac	;
 
 
 
-init(ue_up_link_info_sent)	:= FALSE	;
-
-next(ue_up_link_info_sent)	:=	 case
-(ue_T7 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
-TRUE	:	ue_up_link_info_sent	;
-esac	;
-
-
-
 init(nb_connection_release_sent)	:= FALSE	;
 
 next(nb_connection_release_sent)	:=	 case
@@ -533,16 +565,17 @@ esac	;
 
 
 
-init(ue_down_link_info2_recv)	:= FALSE	;
+init(ue_cell_barred)	:= FALSE	;
 
-next(ue_down_link_info2_recv)	:=	 case
-(ue_T8 )	:	TRUE	;
-(ue_T9 | ue_T10 )	:	FALSE	;
-TRUE	:	ue_down_link_info2_recv	;
+next(ue_cell_barred)	:=	 case
+(ue_T5 | ue_T7 )	:	TRUE	;
+(ue_T12 | ue_T13 )	:	FALSE	;
+TRUE	:	ue_cell_barred	;
 esac	;
 
 
 LTLSPEC G(ue_is_connected -> !ue_cell_info_bad)
+LTLSPEC G(!ue_cell_barred)
 
 ---Old properties from SMF state machine
 
