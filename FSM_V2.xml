@@ -114,7 +114,7 @@
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                         ue_start_cell_selection &amp; !ue_cell_info_bad &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                         ue_start_cell_selection &amp; !ue_connection_request_sent &amp; !ue_is_connected 
                     </condition>
 
                     <actions>

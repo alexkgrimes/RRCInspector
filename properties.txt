@@ -1,4 +1,4 @@
-LTLSPEC G(!ue_cell_info_bad)
+LTLSPEC G(ue_is_connected -> !ue_cell_info_bad)
 
 ---Old properties from SMF state machine
 

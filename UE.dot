@@ -4,7 +4,7 @@ size = "8,5"
 node [shape = circle, label="ue_rrc_idle"]ue_rrc_idle;
 node [shape = circle, label="ue_rrc_connected"]ue_rrc_connected;
 ue_rrc_idle -> ue_rrc_idle [label = "ue_T1: 
-                         ue_start_cell_selection & !ue_cell_info_bad & !ue_connection_request_sent & !ue_is_connected 
+                         ue_start_cell_selection & !ue_connection_request_sent & !ue_is_connected 
                     /
 connection_request, ue_connection_request_sent = TRUE"]
 ue_rrc_idle -> ue_rrc_connected [label = "ue_T2: 

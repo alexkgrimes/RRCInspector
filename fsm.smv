@@ -83,6 +83,9 @@ chan_NB	:
 inj_adv_act_NB	:
 {
 	adv_NB_null_action,
+	adv_NB_connection_setup,
+	adv_NB_down_link_info,
+	adv_NB_down_link_info2,
 	adv_NB_connection_release
 };
 
@@ -101,7 +104,7 @@ DEFINE
 
 -----------------UE transitions --------------------
 ue_T1	:=	 (ue_state = ue_rrc_idle & 
-                         ue_start_cell_selection & !ue_cell_info_bad & !ue_connection_request_sent & !ue_is_connected 
+                         ue_start_cell_selection & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T2	:=	 (ue_state = ue_rrc_idle & 
                         chan_UE=chanUE_connection_setup & ue_connection_request_sent 
@@ -155,12 +158,18 @@ ASSIGN
 init(inj_adv_act_NB)	:=
 {
 	adv_NB_null_action,
+	adv_NB_connection_setup,
+	adv_NB_down_link_info,
+	adv_NB_down_link_info2,
 	adv_NB_connection_release
 };
 
 next(inj_adv_act_NB)	:=	case
 TRUE	:	{
 	adv_NB_null_action,
+	adv_NB_connection_setup,
+	adv_NB_down_link_info,
+	adv_NB_down_link_info2,
 	adv_NB_connection_release
 };
 esac	;
@@ -234,6 +243,9 @@ init(chan_UE)	:=	chanUE_null_action;
 
 next(chan_UE)	:=	 case
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_null_action	:	chanUE_null_action	;
+attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_connection_setup	:	chanUE_connection_setup	;
+attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_down_link_info	:	chanUE_down_link_info	;
+attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_down_link_info2	:	chanUE_down_link_info2	;
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_connection_release	:	chanUE_connection_release	;
 ! noisy_channel_UE	&	nb_action	=	 nb_null_action	:	chanUE_null_action	;
 ! noisy_channel_UE	&	nb_action	=	 nb_connection_setup	:	chanUE_connection_setup	;
@@ -380,7 +392,7 @@ TRUE	:	ue_down_link_info2_recv	;
 esac	;
 
 
-LTLSPEC G(ue_start_cell_selection & !ue_cell_info_bad)
+LTLSPEC G(ue_is_connected -> !ue_cell_info_bad)
 
 ---Old properties from SMF state machine
 
