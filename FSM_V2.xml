@@ -16,6 +16,34 @@
                 <initialvalue>TRUE</initialvalue>
         </VAR>
 
+        <VAR label="ue_has_cell_info">
+            <datatype>boolean</datatype>
+            <controltype>state</controltype>
+            <possiblevalues>TRUE,FALSE</possiblevalues>
+            <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_stored_info_cell_selection_started">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="ue_found_suitable_cell">
+                <datatype>boolean</datatype>
+                <controltype>environment</controltype>
+                <initialvalue>FALSE</initialvalue>
+                <fsm>UE</fsm>
+        </VAR>
+
+        <VAR label="ue_monitoring_paging_channel">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
          <VAR label="ue_cell_info_bad">
                 <datatype>boolean</datatype>
                 <controltype>state</controltype>
@@ -79,7 +107,7 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
-        <VAR label="nb_connection_release_bad">
+        <VAR label="nb_bad_carrier_redirection_info">
                 <datatype>boolean</datatype>
                 <controltype>environment</controltype>
                 <initialvalue>TRUE</initialvalue>
@@ -108,13 +136,66 @@
 
             <transitions>
 
-
                 <transition label="ue_T1">
                     <start>ue_rrc_idle</start>
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                         ue_start_cell_selection &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                         ue_start_cell_selection &amp; ue_has_cell_info &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="null_action">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_stored_info_cell_selection_started = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="ue_T2">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         ue_start_cell_selection &amp; ue_has_cell_info &amp; ue_stored_info_cell_selection_started &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                    </condition>
+
+                    <actions>
+                         <action label="null_action">
+                            <channel label="chan_NB">
+                            <start>UE</start>
+                            <end>NB</end>
+                            </channel>
+                        </action>
+                        <action label="ue_found_suitable_cell = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_monitoring_paging_channel = TRUE">
+                            <channel label="internal">
+                                <start>UE</start>
+                                <end>UE</end>
+                            </channel>
+                        </action>
+                    </actions>
+                </transition>
+
+                <transition label="ue_T3">
+                    <start>ue_rrc_idle</start>
+                    <end>ue_rrc_idle</end>
+
+                    <condition>
+                         ue_start_cell_selection &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
                     </condition>
 
                     <actions>
@@ -134,7 +215,7 @@
                 </transition>
 
                 
-                <transition label="ue_T2">
+                <transition label="ue_T4">
                     <start>ue_rrc_idle</start>
                     <end>ue_rrc_connected</end>
 
@@ -159,7 +240,7 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T3">
+                <transition label="ue_T5">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_connected</end>
 
@@ -184,7 +265,7 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T4">
+                <transition label="ue_T6">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_connected</end>
 
@@ -209,12 +290,13 @@
                     </actions>
                 </transition>
 
-                <transition label="ue_T5">
+                <transition label="ue_T7">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; !nb_connection_release_bad &amp; 
+                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; !nb_bad_carrier_redirection_info
+             &amp; 
                         ue_down_link_info2_recv &amp; ue_up_link_info_sent 
                     </condition>
 
@@ -255,16 +337,36 @@
                             <end>UE</end>
                             </channel>
                         </action>
+                        <action label="ue_stored_info_cell_selection_started = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_found_suitable_cell = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_monitoring_paging_channel = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+
                         
                     </actions>
                 </transition>
 
-                <transition label="ue_T6">
+                <transition label="ue_T8">
                     <start>ue_rrc_connected</start>
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; nb_connection_release_bad &amp; 
+                        chan_UE=chanUE_connection_release &amp; ue_is_connected &amp; nb_bad_carrier_redirection_info
+             &amp; 
                         ue_down_link_info2_recv &amp; ue_up_link_info_sent 
                     </condition>
 
@@ -311,6 +413,24 @@
                             <end>UE</end>
                             </channel>
                         </action>
+                        <action label="ue_stored_info_cell_selection_started = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_found_suitable_cell = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+                        <action label="ue_monitoring_paging_channel = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>  
                     </actions>
                 </transition>
 
@@ -318,6 +438,14 @@
 
             </transitions>
         </FSM>
+
+
+
+
+
+
+
+
 
         <FSM label="NB">
 

@@ -4,29 +4,39 @@ size = "8,5"
 node [shape = circle, label="ue_rrc_idle"]ue_rrc_idle;
 node [shape = circle, label="ue_rrc_connected"]ue_rrc_connected;
 ue_rrc_idle -> ue_rrc_idle [label = "ue_T1: 
-                         ue_start_cell_selection & !ue_connection_request_sent & !ue_is_connected 
+                         ue_start_cell_selection & ue_has_cell_info & !ue_connection_request_sent & !ue_is_connected 
+                    /
+null_action, ue_stored_info_cell_selection_started = TRUE"]
+ue_rrc_idle -> ue_rrc_idle [label = "ue_T2: 
+                         ue_start_cell_selection & ue_has_cell_info & ue_stored_info_cell_selection_started & !ue_connection_request_sent & !ue_is_connected 
+                    /
+null_action, ue_found_suitable_cell = TRUE, ue_monitoring_paging_channel = TRUE"]
+ue_rrc_idle -> ue_rrc_idle [label = "ue_T3: 
+                         ue_start_cell_selection & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     /
 connection_request, ue_connection_request_sent = TRUE"]
-ue_rrc_idle -> ue_rrc_connected [label = "ue_T2: 
+ue_rrc_idle -> ue_rrc_connected [label = "ue_T4: 
                         chan_UE=chanUE_connection_setup & ue_connection_request_sent 
                     /
 connection_complete, ue_is_connected = TRUE"]
-ue_rrc_connected -> ue_rrc_connected [label = "ue_T3: 
+ue_rrc_connected -> ue_rrc_connected [label = "ue_T5: 
                         chan_UE=chanUE_down_link_info & ue_is_connected & ue_connection_request_sent 
                     /
 up_link_info, ue_up_link_info_sent = TRUE"]
-ue_rrc_connected -> ue_rrc_connected [label = "ue_T4: 
+ue_rrc_connected -> ue_rrc_connected [label = "ue_T6: 
                         chan_UE=chanUE_down_link_info2 & ue_is_connected & ue_up_link_info_sent & ue_connection_request_sent
                     /
 null_action, ue_down_link_info2_recv = TRUE"]
-ue_rrc_connected -> ue_rrc_idle [label = "ue_T5: 
-                        chan_UE=chanUE_connection_release & ue_is_connected & !nb_connection_release_bad & 
+ue_rrc_connected -> ue_rrc_idle [label = "ue_T7: 
+                        chan_UE=chanUE_connection_release & ue_is_connected & !nb_bad_carrier_redirection_info
+             & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     /
-null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE"]
-ue_rrc_connected -> ue_rrc_idle [label = "ue_T6: 
-                        chan_UE=chanUE_connection_release & ue_is_connected & nb_connection_release_bad & 
+null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE"]
+ue_rrc_connected -> ue_rrc_idle [label = "ue_T8: 
+                        chan_UE=chanUE_connection_release & ue_is_connected & nb_bad_carrier_redirection_info
+             & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     /
-null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_cell_info_bad = TRUE"]
+null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_cell_info_bad = TRUE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE"]
 }

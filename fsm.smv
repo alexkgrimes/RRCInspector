@@ -6,6 +6,10 @@ VAR
 ------------------- Environment and State variables --------------------
 AHHHHH	:	boolean;	
 ue_start_cell_selection	:	boolean;	
+ue_has_cell_info	:	boolean;	
+ue_stored_info_cell_selection_started	:	boolean;	
+ue_found_suitable_cell	:	boolean;	
+ue_monitoring_paging_channel	:	boolean;	
 ue_cell_info_bad	:	boolean;	
 ue_connection_request_sent	:	boolean;	
 nb_connection_setup_sent	:	boolean;	
@@ -15,7 +19,7 @@ nb_down_link_info_sent	:	boolean;
 nb_down_link_info2_sent	:	boolean;	
 ue_up_link_info_sent	:	boolean;	
 nb_connection_release_sent	:	boolean;	
-nb_connection_release_bad	:	boolean;	
+nb_bad_carrier_redirection_info	:	boolean;	
 ue_down_link_info2_recv	:	boolean;	
 attacker_inject_message_chanUE	:	boolean	;
 attacker_inject_message_chanNB	:	boolean	;
@@ -41,10 +45,10 @@ nb_state	:
 
 ue_action	:
 {
+	ue_null_action,
 	ue_connection_request,
 	ue_connection_complete,
-	ue_up_link_info,
-	ue_null_action
+	ue_up_link_info
 };
 ------------ Possible NB actions ----------------
 
@@ -72,10 +76,10 @@ chan_UE	:
 
 chan_NB	:
 {
+	chanNB_null_action,
 	chanNB_connection_request,
 	chanNB_connection_complete,
-	chanNB_up_link_info,
-	chanNB_null_action
+	chanNB_up_link_info
 };
 
 --------------- Injection adversary action for channel chan_UE ---------------
@@ -93,10 +97,10 @@ inj_adv_act_NB	:
 
 inj_adv_act_UE	:
 {
+	adv_UE_null_action,
 	adv_UE_connection_request,
 	adv_UE_connection_complete,
-	adv_UE_up_link_info,
-	adv_UE_null_action
+	adv_UE_up_link_info
 };
 
 
@@ -104,23 +108,31 @@ DEFINE
 
 -----------------UE transitions --------------------
 ue_T1	:=	 (ue_state = ue_rrc_idle & 
-                         ue_start_cell_selection & !ue_connection_request_sent & !ue_is_connected 
+                         ue_start_cell_selection & ue_has_cell_info & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T2	:=	 (ue_state = ue_rrc_idle & 
+                         ue_start_cell_selection & ue_has_cell_info & ue_stored_info_cell_selection_started & !ue_connection_request_sent & !ue_is_connected 
+                    )	;
+ue_T3	:=	 (ue_state = ue_rrc_idle & 
+                         ue_start_cell_selection & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
+                    )	;
+ue_T4	:=	 (ue_state = ue_rrc_idle & 
                         chan_UE=chanUE_connection_setup & ue_connection_request_sent 
                     )	;
-ue_T3	:=	 (ue_state = ue_rrc_connected & 
+ue_T5	:=	 (ue_state = ue_rrc_connected & 
                         chan_UE=chanUE_down_link_info & ue_is_connected & ue_connection_request_sent 
                     )	;
-ue_T4	:=	 (ue_state = ue_rrc_connected & 
+ue_T6	:=	 (ue_state = ue_rrc_connected & 
                         chan_UE=chanUE_down_link_info2 & ue_is_connected & ue_up_link_info_sent & ue_connection_request_sent
                     )	;
-ue_T5	:=	 (ue_state = ue_rrc_connected & 
-                        chan_UE=chanUE_connection_release & ue_is_connected & !nb_connection_release_bad & 
+ue_T7	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_connection_release & ue_is_connected & !nb_bad_carrier_redirection_info
+             & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
-ue_T6	:=	 (ue_state = ue_rrc_connected & 
-                        chan_UE=chanUE_connection_release & ue_is_connected & nb_connection_release_bad & 
+ue_T8	:=	 (ue_state = ue_rrc_connected & 
+                        chan_UE=chanUE_connection_release & ue_is_connected & nb_bad_carrier_redirection_info
+             & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
 
@@ -176,18 +188,18 @@ esac	;
 
 init(inj_adv_act_UE)	:=
 {
+	adv_UE_null_action,
 	adv_UE_connection_request,
 	adv_UE_connection_complete,
-	adv_UE_up_link_info,
-	adv_UE_null_action
+	adv_UE_up_link_info
 };
 
 next(inj_adv_act_UE)	:=	case
 TRUE	:	{
+	adv_UE_null_action,
 	adv_UE_connection_request,
 	adv_UE_connection_complete,
-	adv_UE_up_link_info,
-	adv_UE_null_action
+	adv_UE_up_link_info
 };
 esac	;
 
@@ -198,8 +210,8 @@ init(ue_state)	:=ue_rrc_idle;
 
 next(ue_state)	:=	 case
 
-(ue_T1 | ue_T5 | ue_T6 )	:	ue_rrc_idle	;
-(ue_T2 | ue_T3 | ue_T4 )	:	ue_rrc_connected	;
+(ue_T1 | ue_T2 | ue_T3 | ue_T7 | ue_T8 )	:	ue_rrc_idle	;
+(ue_T4 | ue_T5 | ue_T6 )	:	ue_rrc_connected	;
 TRUE	:	ue_state	;
 esac	;
 
@@ -219,10 +231,10 @@ init(ue_action)	:= ue_null_action	;
 
 next(ue_action)	:=	 case
 
-(ue_T1 )	:	ue_connection_request	;
-(ue_T2 )	:	ue_connection_complete	;
-(ue_T3 )	:	ue_up_link_info	;
-(ue_T4 | ue_T5 | ue_T6 )	:	ue_null_action	;
+(ue_T1 | ue_T2 | ue_T6 | ue_T7 | ue_T8 )	:	ue_null_action	;
+(ue_T3 )	:	ue_connection_request	;
+(ue_T4 )	:	ue_connection_complete	;
+(ue_T5 )	:	ue_up_link_info	;
 TRUE	:	ue_null_action	;
 esac	;
 
@@ -267,21 +279,21 @@ esac	;
 init(chan_NB)	:=	chanNB_null_action;
 
 next(chan_NB)	:=	 case
+attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_null_action	:	chanNB_null_action	;
 attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_request	:	chanNB_connection_request	;
 attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_complete	:	chanNB_connection_complete	;
 attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_up_link_info	:	chanNB_up_link_info	;
-attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_null_action	:	chanNB_null_action	;
+! noisy_channel_NB	&	ue_action	=	 ue_null_action	:	chanNB_null_action	;
 ! noisy_channel_NB	&	ue_action	=	 ue_connection_request	:	chanNB_connection_request	;
 ! noisy_channel_NB	&	ue_action	=	 ue_connection_complete	:	chanNB_connection_complete	;
 ! noisy_channel_NB	&	ue_action	=	 ue_up_link_info	:	chanNB_up_link_info	;
-! noisy_channel_NB	&	ue_action	=	 ue_null_action	:	chanNB_null_action	;
 
 TRUE	:
 {
+	chanNB_null_action,
 	chanNB_connection_request,
 	chanNB_connection_complete,
-	chanNB_up_link_info,
-	chanNB_null_action
+	chanNB_up_link_info
 }	;
 esac	;
 
@@ -290,8 +302,28 @@ esac	;
 init(ue_start_cell_selection)	:= TRUE	;
 
 next(ue_start_cell_selection)	:=	 case
-(ue_T5 | ue_T6 )	:	TRUE	;
+(ue_T7 | ue_T8 )	:	TRUE	;
 TRUE	:	ue_start_cell_selection	;
+esac	;
+
+
+
+init(ue_stored_info_cell_selection_started)	:= FALSE	;
+
+next(ue_stored_info_cell_selection_started)	:=	 case
+(ue_T1 )	:	TRUE	;
+(ue_T7 | ue_T8 )	:	FALSE	;
+TRUE	:	ue_stored_info_cell_selection_started	;
+esac	;
+
+
+
+init(ue_monitoring_paging_channel)	:= FALSE	;
+
+next(ue_monitoring_paging_channel)	:=	 case
+(ue_T2 )	:	TRUE	;
+(ue_T7 | ue_T8 )	:	FALSE	;
+TRUE	:	ue_monitoring_paging_channel	;
 esac	;
 
 
@@ -299,7 +331,7 @@ esac	;
 init(ue_cell_info_bad)	:= FALSE	;
 
 next(ue_cell_info_bad)	:=	 case
-(ue_T6 )	:	TRUE	;
+(ue_T8 )	:	TRUE	;
 TRUE	:	ue_cell_info_bad	;
 esac	;
 
@@ -308,8 +340,8 @@ esac	;
 init(ue_connection_request_sent)	:= FALSE	;
 
 next(ue_connection_request_sent)	:=	 case
-(ue_T1 )	:	TRUE	;
-(ue_T5 | ue_T6 )	:	FALSE	;
+(ue_T3 )	:	TRUE	;
+(ue_T7 | ue_T8 )	:	FALSE	;
 TRUE	:	ue_connection_request_sent	;
 esac	;
 
@@ -328,8 +360,8 @@ esac	;
 init(ue_is_connected)	:= FALSE	;
 
 next(ue_is_connected)	:=	 case
-(ue_T2 )	:	TRUE	;
-(ue_T5 | ue_T6 )	:	FALSE	;
+(ue_T4 )	:	TRUE	;
+(ue_T7 | ue_T8 )	:	FALSE	;
 TRUE	:	ue_is_connected	;
 esac	;
 
@@ -367,8 +399,8 @@ esac	;
 init(ue_up_link_info_sent)	:= FALSE	;
 
 next(ue_up_link_info_sent)	:=	 case
-(ue_T3 )	:	TRUE	;
-(ue_T5 | ue_T6 )	:	FALSE	;
+(ue_T5 )	:	TRUE	;
+(ue_T7 | ue_T8 )	:	FALSE	;
 TRUE	:	ue_up_link_info_sent	;
 esac	;
 
@@ -386,8 +418,8 @@ esac	;
 init(ue_down_link_info2_recv)	:= FALSE	;
 
 next(ue_down_link_info2_recv)	:=	 case
-(ue_T4 )	:	TRUE	;
-(ue_T5 | ue_T6 )	:	FALSE	;
+(ue_T6 )	:	TRUE	;
+(ue_T7 | ue_T8 )	:	FALSE	;
 TRUE	:	ue_down_link_info2_recv	;
 esac	;
 
