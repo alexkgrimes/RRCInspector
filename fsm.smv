@@ -14,6 +14,9 @@ nb_MIB_sent	:	boolean;
 ue_MIB_received	:	boolean;	
 nb_SIBs_sent	:	boolean;	
 ue_SIBs_received	:	boolean;	
+ue_PRACH_preamble_sent	:	boolean;	
+nb_PRACH_preamble_received	:	boolean;	
+nb_RACH_response_sent	:	boolean;	
 ue_cell_info_bad	:	boolean;	
 ue_connection_request_sent	:	boolean;	
 nb_connection_setup_sent	:	boolean;	
@@ -50,6 +53,7 @@ nb_state	:
 ue_action	:
 {
 	ue_null_action,
+	ue_PRACH_preamble,
 	ue_connection_request,
 	ue_connection_complete,
 	ue_up_link_info
@@ -60,6 +64,7 @@ nb_action	:
 {
 	nb_MIB,
 	nb_SIBs,
+	nb_RACH_response,
 	nb_connection_setup,
 	nb_down_link_info,
 	nb_down_link_info2,
@@ -74,6 +79,7 @@ chan_UE	:
 	chanUE_null_action,
 	chanUE_MIB,
 	chanUE_SIBs,
+	chanUE_RACH_response,
 	chanUE_connection_setup,
 	chanUE_down_link_info,
 	chanUE_down_link_info2,
@@ -85,6 +91,7 @@ chan_UE	:
 chan_NB	:
 {
 	chanNB_null_action,
+	chanNB_PRACH_preamble,
 	chanNB_connection_request,
 	chanNB_connection_complete,
 	chanNB_up_link_info
@@ -97,6 +104,7 @@ inj_adv_act_NB	:
 	adv_NB_null_action,
 	adv_NB_MIB,
 	adv_NB_SIBs,
+	adv_NB_RACH_response,
 	adv_NB_connection_setup,
 	adv_NB_down_link_info,
 	adv_NB_down_link_info2,
@@ -108,6 +116,7 @@ inj_adv_act_NB	:
 inj_adv_act_UE	:
 {
 	adv_UE_null_action,
+	adv_UE_PRACH_preamble,
 	adv_UE_connection_request,
 	adv_UE_connection_complete,
 	adv_UE_up_link_info
@@ -130,7 +139,7 @@ ue_T4	:=	 (ue_state = ue_rrc_idle &
                          chan_UE=chanUE_SIBs & ue_start_cell_selection & ue_MIB_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T5	:=	 (ue_state = ue_rrc_idle & 
-                         ue_start_cell_selection & ue_MIB_received & ue_SIBs_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
+                         chan_UE=chanUE_RACH_response & ue_start_cell_selection & ue_PRACH_preamble_sent & ue_MIB_received & ue_SIBs_received & ue_found_suitable_cell & ue_monitoring_paging_channel & !ue_connection_request_sent & !ue_is_connected 
                     )	;
 ue_T6	:=	 (ue_state = ue_rrc_idle & 
                         chan_UE=chanUE_connection_setup & ue_connection_request_sent 
@@ -147,8 +156,7 @@ ue_T9	:=	 (ue_state = ue_rrc_connected &
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
 ue_T10	:=	 (ue_state = ue_rrc_connected & 
-                        chan_UE=chanUE_connection_release & ue_is_connected & nb_bad_carrier_redirection_info
-             & 
+                        chan_UE=chanUE_connection_release & ue_is_connected & nb_bad_carrier_redirection_info & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     )	;
 
@@ -160,18 +168,21 @@ nb_T2	:=	 (nb_state = nb_rrc_idle &
                             nb_MIB_sent & ue_monitoring_paging_channel & !nb_connection_setup_sent & !nb_down_link_info_sent & !nb_SIBs_sent
                         )	;
 nb_T3	:=	 (nb_state = nb_rrc_idle & 
-                            chan_NB=chanNB_connection_request & !nb_connection_setup_sent & nb_MIB_sent & nb_SIBs_sent
+                            chan_NB=chanNB_PRACH_preamble & nb_SIBs_sent & nb_MIB_sent & ue_monitoring_paging_channel & !nb_connection_setup_sent & !nb_down_link_info_sent & !nb_SIBs_sent
                         )	;
 nb_T4	:=	 (nb_state = nb_rrc_idle & 
-                            chan_NB=chanNB_connection_complete & nb_connection_setup_sent & !nb_down_link_info_sent
+                            chan_NB=chanNB_connection_request & nb_PRACH_preamble_received & nb_RACH_response_sent & !nb_connection_setup_sent & nb_MIB_sent & nb_SIBs_sent
                         )	;
-nb_T5	:=	 (nb_state = nb_rrc_connected & 
-                            chan_NB=chanNB_up_link_info 
+nb_T5	:=	 (nb_state = nb_rrc_idle & 
+                            chan_NB=chanNB_connection_complete & nb_connection_setup_sent & !nb_down_link_info_sent
                         )	;
 nb_T6	:=	 (nb_state = nb_rrc_connected & 
                             chan_NB=chanNB_up_link_info 
                         )	;
 nb_T7	:=	 (nb_state = nb_rrc_connected & 
+                            chan_NB=chanNB_up_link_info 
+                        )	;
+nb_T8	:=	 (nb_state = nb_rrc_connected & 
                             nb_down_link_info2_sent & nb_down_link_info_sent
                         )	;
 
@@ -194,6 +205,7 @@ init(inj_adv_act_NB)	:=
 	adv_NB_null_action,
 	adv_NB_MIB,
 	adv_NB_SIBs,
+	adv_NB_RACH_response,
 	adv_NB_connection_setup,
 	adv_NB_down_link_info,
 	adv_NB_down_link_info2,
@@ -205,6 +217,7 @@ TRUE	:	{
 	adv_NB_null_action,
 	adv_NB_MIB,
 	adv_NB_SIBs,
+	adv_NB_RACH_response,
 	adv_NB_connection_setup,
 	adv_NB_down_link_info,
 	adv_NB_down_link_info2,
@@ -215,6 +228,7 @@ esac	;
 init(inj_adv_act_UE)	:=
 {
 	adv_UE_null_action,
+	adv_UE_PRACH_preamble,
 	adv_UE_connection_request,
 	adv_UE_connection_complete,
 	adv_UE_up_link_info
@@ -223,6 +237,7 @@ init(inj_adv_act_UE)	:=
 next(inj_adv_act_UE)	:=	case
 TRUE	:	{
 	adv_UE_null_action,
+	adv_UE_PRACH_preamble,
 	adv_UE_connection_request,
 	adv_UE_connection_complete,
 	adv_UE_up_link_info
@@ -247,8 +262,8 @@ init(nb_state)	:=nb_rrc_idle;
 
 next(nb_state)	:=	 case
 
-(nb_T1 | nb_T2 | nb_T3 | nb_T7 )	:	nb_rrc_idle	;
-(nb_T4 | nb_T5 | nb_T6 )	:	nb_rrc_connected	;
+(nb_T1 | nb_T2 | nb_T3 | nb_T4 | nb_T8 )	:	nb_rrc_idle	;
+(nb_T5 | nb_T6 | nb_T7 )	:	nb_rrc_connected	;
 TRUE	:	nb_state	;
 esac	;
 
@@ -257,7 +272,8 @@ init(ue_action)	:= ue_null_action	;
 
 next(ue_action)	:=	 case
 
-(ue_T1 | ue_T2 | ue_T3 | ue_T4 | ue_T8 | ue_T9 | ue_T10 )	:	ue_null_action	;
+(ue_T1 | ue_T2 | ue_T3 | ue_T8 | ue_T9 | ue_T10 )	:	ue_null_action	;
+(ue_T4 )	:	ue_PRACH_preamble	;
 (ue_T5 )	:	ue_connection_request	;
 (ue_T6 )	:	ue_connection_complete	;
 (ue_T7 )	:	ue_up_link_info	;
@@ -271,11 +287,12 @@ next(nb_action)	:=	 case
 
 (nb_T1 )	:	nb_MIB	;
 (nb_T2 )	:	nb_SIBs	;
-(nb_T3 )	:	nb_connection_setup	;
-(nb_T4 )	:	nb_down_link_info	;
-(nb_T5 )	:	nb_down_link_info2	;
-(nb_T6 )	:	nb_null_action	;
-(nb_T7 )	:	nb_connection_release	;
+(nb_T3 )	:	nb_RACH_response	;
+(nb_T4 )	:	nb_connection_setup	;
+(nb_T5 )	:	nb_down_link_info	;
+(nb_T6 )	:	nb_down_link_info2	;
+(nb_T7 )	:	nb_null_action	;
+(nb_T8 )	:	nb_connection_release	;
 TRUE	:	nb_null_action	;
 esac	;
 
@@ -285,6 +302,7 @@ next(chan_UE)	:=	 case
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_null_action	:	chanUE_null_action	;
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_MIB	:	chanUE_MIB	;
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_SIBs	:	chanUE_SIBs	;
+attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_RACH_response	:	chanUE_RACH_response	;
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_connection_setup	:	chanUE_connection_setup	;
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_down_link_info	:	chanUE_down_link_info	;
 attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_down_link_info2	:	chanUE_down_link_info2	;
@@ -292,6 +310,7 @@ attacker_inject_message_chanUE	&	inj_adv_NB_enabled	&	inj_adv_act_NB	=	adv_NB_co
 ! noisy_channel_UE	&	nb_action	=	 nb_null_action	:	chanUE_null_action	;
 ! noisy_channel_UE	&	nb_action	=	 nb_MIB	:	chanUE_MIB	;
 ! noisy_channel_UE	&	nb_action	=	 nb_SIBs	:	chanUE_SIBs	;
+! noisy_channel_UE	&	nb_action	=	 nb_RACH_response	:	chanUE_RACH_response	;
 ! noisy_channel_UE	&	nb_action	=	 nb_connection_setup	:	chanUE_connection_setup	;
 ! noisy_channel_UE	&	nb_action	=	 nb_down_link_info	:	chanUE_down_link_info	;
 ! noisy_channel_UE	&	nb_action	=	 nb_down_link_info2	:	chanUE_down_link_info2	;
@@ -302,6 +321,7 @@ TRUE	:
 	chanUE_null_action,
 	chanUE_MIB,
 	chanUE_SIBs,
+	chanUE_RACH_response,
 	chanUE_connection_setup,
 	chanUE_down_link_info,
 	chanUE_down_link_info2,
@@ -314,10 +334,12 @@ init(chan_NB)	:=	chanNB_null_action;
 
 next(chan_NB)	:=	 case
 attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_null_action	:	chanNB_null_action	;
+attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_PRACH_preamble	:	chanNB_PRACH_preamble	;
 attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_request	:	chanNB_connection_request	;
 attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_connection_complete	:	chanNB_connection_complete	;
 attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_up_link_info	:	chanNB_up_link_info	;
 ! noisy_channel_NB	&	ue_action	=	 ue_null_action	:	chanNB_null_action	;
+! noisy_channel_NB	&	ue_action	=	 ue_PRACH_preamble	:	chanNB_PRACH_preamble	;
 ! noisy_channel_NB	&	ue_action	=	 ue_connection_request	:	chanNB_connection_request	;
 ! noisy_channel_NB	&	ue_action	=	 ue_connection_complete	:	chanNB_connection_complete	;
 ! noisy_channel_NB	&	ue_action	=	 ue_up_link_info	:	chanNB_up_link_info	;
@@ -325,6 +347,7 @@ attacker_inject_message_chanNB	&	inj_adv_UE_enabled	&	inj_adv_act_UE	=	adv_UE_up
 TRUE	:
 {
 	chanNB_null_action,
+	chanNB_PRACH_preamble,
 	chanNB_connection_request,
 	chanNB_connection_complete,
 	chanNB_up_link_info
@@ -366,7 +389,7 @@ init(nb_MIB_sent)	:= FALSE	;
 
 next(nb_MIB_sent)	:=	 case
 (nb_T1 )	:	TRUE	;
-(nb_T7 )	:	FALSE	;
+(nb_T8 )	:	FALSE	;
 TRUE	:	nb_MIB_sent	;
 esac	;
 
@@ -386,17 +409,38 @@ init(nb_SIBs_sent)	:= FALSE	;
 
 next(nb_SIBs_sent)	:=	 case
 (nb_T2 )	:	TRUE	;
-(nb_T7 )	:	FALSE	;
+(nb_T8 )	:	FALSE	;
 TRUE	:	nb_SIBs_sent	;
 esac	;
 
 
 
-init(ue_SIBs_received)	:= FALSE	;
+init(ue_PRACH_preamble_sent)	:= FALSE	;
 
-next(ue_SIBs_received)	:=	 case
+next(ue_PRACH_preamble_sent)	:=	 case
 (ue_T4 )	:	TRUE	;
-TRUE	:	ue_SIBs_received	;
+(ue_T9 | ue_T10 )	:	FALSE	;
+TRUE	:	ue_PRACH_preamble_sent	;
+esac	;
+
+
+
+init(nb_PRACH_preamble_received)	:= FALSE	;
+
+next(nb_PRACH_preamble_received)	:=	 case
+(nb_T3 )	:	TRUE	;
+(nb_T8 )	:	FALSE	;
+TRUE	:	nb_PRACH_preamble_received	;
+esac	;
+
+
+
+init(nb_RACH_response_sent)	:= FALSE	;
+
+next(nb_RACH_response_sent)	:=	 case
+(nb_T3 )	:	TRUE	;
+(nb_T8 )	:	FALSE	;
+TRUE	:	nb_RACH_response_sent	;
 esac	;
 
 
@@ -423,8 +467,8 @@ esac	;
 init(nb_connection_setup_sent)	:= FALSE	;
 
 next(nb_connection_setup_sent)	:=	 case
-(nb_T3 )	:	TRUE	;
-(nb_T7 )	:	FALSE	;
+(nb_T4 )	:	TRUE	;
+(nb_T8 )	:	FALSE	;
 TRUE	:	nb_connection_setup_sent	;
 esac	;
 
@@ -443,7 +487,7 @@ esac	;
 init(nb_is_connected)	:= FALSE	;
 
 next(nb_is_connected)	:=	 case
-(nb_T4 )	:	TRUE	;
+(nb_T5 )	:	TRUE	;
 TRUE	:	nb_is_connected	;
 esac	;
 
@@ -452,8 +496,8 @@ esac	;
 init(nb_down_link_info_sent)	:= FALSE	;
 
 next(nb_down_link_info_sent)	:=	 case
-(nb_T4 )	:	TRUE	;
-(nb_T7 )	:	FALSE	;
+(nb_T5 )	:	TRUE	;
+(nb_T8 )	:	FALSE	;
 TRUE	:	nb_down_link_info_sent	;
 esac	;
 
@@ -462,8 +506,8 @@ esac	;
 init(nb_down_link_info2_sent)	:= FALSE	;
 
 next(nb_down_link_info2_sent)	:=	 case
-(nb_T5 )	:	TRUE	;
-(nb_T7 )	:	FALSE	;
+(nb_T6 )	:	TRUE	;
+(nb_T8 )	:	FALSE	;
 TRUE	:	nb_down_link_info2_sent	;
 esac	;
 
@@ -482,7 +526,7 @@ esac	;
 init(nb_connection_release_sent)	:= FALSE	;
 
 next(nb_connection_release_sent)	:=	 case
-(nb_T7 )	:	TRUE	;
+(nb_T8 )	:	TRUE	;
 (nb_T1 )	:	FALSE	;
 TRUE	:	nb_connection_release_sent	;
 esac	;

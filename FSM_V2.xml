@@ -72,6 +72,31 @@
                 <initialvalue>FALSE</initialvalue>
         </VAR>
 
+        <VAR label="ue_PRACH_preamble_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+
+        <VAR label="nb_PRACH_preamble_received">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+        <VAR label="nb_RACH_response_sent">
+                <datatype>boolean</datatype>
+                <controltype>state</controltype>
+                <possiblevalues>TRUE,FALSE</possiblevalues>
+                <initialvalue>FALSE</initialvalue>
+        </VAR>
+
+
+        
+
     
          <VAR label="ue_cell_info_bad">
                 <datatype>boolean</datatype>
@@ -253,13 +278,13 @@
                     </condition>
 
                     <actions>
-                         <action label="null_action">
+                         <action label="PRACH_preamble">
                             <channel label="chan_NB">
                             <start>UE</start>
                             <end>NB</end>
                             </channel>
                         </action>
-                        <action label="ue_SIBs_received = TRUE">
+                        <action label="ue_PRACH_preamble_sent = TRUE">
                             <channel label="internal">
                                 <start>UE</start>
                                 <end>UE</end>
@@ -273,7 +298,7 @@
                     <end>ue_rrc_idle</end>
 
                     <condition>
-                         ue_start_cell_selection &amp; ue_MIB_received &amp; ue_SIBs_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
+                         chan_UE=chanUE_RACH_response &amp; ue_start_cell_selection &amp; ue_PRACH_preamble_sent &amp; ue_MIB_received &amp; ue_SIBs_received &amp; ue_found_suitable_cell &amp; ue_monitoring_paging_channel &amp; !ue_connection_request_sent &amp; !ue_is_connected 
                     </condition>
 
                     <actions>
@@ -439,6 +464,13 @@
                             <end>UE</end>
                             </channel>
                         </action>
+                        <action label="ue_PRACH_preamble_sent = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+
 
                         
                     </actions>
@@ -520,6 +552,14 @@
                             <end>UE</end>
                             </channel>
                         </action>
+                        <action label="ue_PRACH_preamble_sent = FALSE">
+                            <channel label="internal">
+                            <start>UE</start>
+                            <end>UE</end>
+                            </channel>
+                        </action>
+
+                        
                     </actions>
                 </transition>
 
@@ -605,14 +645,44 @@
                         </actions>
                 </transition>
 
-                
-
                 <transition label="nb_T3">
                         <start>nb_rrc_idle</start>
                         <end>nb_rrc_idle</end>
 
                         <condition>
-                            chan_NB=chanNB_connection_request &amp; !nb_connection_setup_sent &amp; nb_MIB_sent &amp; nb_SIBs_sent
+                            chan_NB=chanNB_PRACH_preamble &amp; nb_SIBs_sent &amp; nb_MIB_sent &amp; ue_monitoring_paging_channel &amp; !nb_connection_setup_sent &amp; !nb_down_link_info_sent &amp; !nb_SIBs_sent
+                        </condition> 
+
+                        <actions>
+                            <action label="RACH_response">
+                                <channel label="chan_UE">
+                                <start>NB</start>
+                                <end>UE</end>
+                                </channel>
+                            </action>
+                            <action label="nb_PRACH_preamble_received = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_RACH_response_sent = TRUE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            
+                        </actions>
+                </transition>
+
+
+                <transition label="nb_T4">
+                        <start>nb_rrc_idle</start>
+                        <end>nb_rrc_idle</end>
+
+                        <condition>
+                            chan_NB=chanNB_connection_request &amp; nb_PRACH_preamble_received &amp; nb_RACH_response_sent &amp; !nb_connection_setup_sent &amp; nb_MIB_sent &amp; nb_SIBs_sent
                         </condition> 
 
                         <actions>
@@ -632,7 +702,7 @@
                         </actions>
                 </transition>
 
-                <transition label="nb_T4">
+                <transition label="nb_T5">
                         <start>nb_rrc_idle</start>
                         <end>nb_rrc_connected</end>
 
@@ -663,7 +733,7 @@
                 </transition>
 
     
-                <transition label="nb_T5">
+                <transition label="nb_T6">
                         <start>nb_rrc_connected</start>
                         <end>nb_rrc_connected</end>
 
@@ -688,7 +758,7 @@
                         </actions>
                 </transition>
 
-                <transition label="nb_T6">
+                <transition label="nb_T7">
                         <start>nb_rrc_connected</start>
                         <end>nb_rrc_connected</end>
 
@@ -707,7 +777,7 @@
                 </transition>
 
 
-                <transition label="nb_T7">
+                <transition label="nb_T8">
                         <start>nb_rrc_connected</start>
                         <end>nb_rrc_idle</end>
 
@@ -758,6 +828,20 @@
                                 <end>NB</end>
                                 </channel>
                             </action>
+                            <action label="nb_PRACH_preamble_received = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+                            <action label="nb_RACH_response_sent = FALSE">
+                                <channel label="internal">
+                                <start>NB</start>
+                                <end>NB</end>
+                                </channel>
+                            </action>
+
+                     
                             
                         </actions>
                 </transition>
