@@ -12,7 +12,7 @@ ue_monitoring_paging_channel	:	boolean;
 ue_MIB_received	:	boolean;	
 ue_SIBs_received	:	boolean;	
 ue_PRACH_preamble_sent	:	boolean;	
-ue_cell_info_bad	:	boolean;	
+ue_cell_redirection_info_bad	:	boolean;	
 ue_connection_request_sent	:	boolean;	
 ue_is_connected	:	boolean;	
 ue_up_link_info_sent	:	boolean;	
@@ -427,11 +427,11 @@ esac	;
 
 
 
-init(ue_cell_info_bad)	:= FALSE	;
+init(ue_cell_redirection_info_bad)	:= FALSE	;
 
-next(ue_cell_info_bad)	:=	 case
+next(ue_cell_redirection_info_bad)	:=	 case
 (ue_T13 )	:	TRUE	;
-TRUE	:	ue_cell_info_bad	;
+TRUE	:	ue_cell_redirection_info_bad	;
 esac	;
 
 
@@ -574,7 +574,7 @@ TRUE	:	ue_cell_barred	;
 esac	;
 
 
-LTLSPEC G(ue_is_connected -> !ue_cell_info_bad)
+LTLSPEC G(ue_is_connected -> !ue_cell_redirection_info_bad)
 LTLSPEC G(!ue_cell_barred)
 
 ---Old properties from SMF state machine

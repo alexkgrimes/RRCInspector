@@ -57,5 +57,5 @@ ue_rrc_connected -> ue_rrc_idle [label = "ue_T13:
                         chan_UE=chanUE_connection_release & ue_is_connected & nb_bad_carrier_redirection_info & 
                         ue_down_link_info2_recv & ue_up_link_info_sent 
                     /
-null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_cell_info_bad = TRUE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE, ue_MIB_received = FALSE, ue_PRACH_preamble_sent = FALSE, ue_cell_barred = FALSE"]
+null_action, ue_start_cell_selection = TRUE, ue_connection_request_sent = FALSE, ue_is_connected = FALSE, ue_up_link_info_sent = FALSE, ue_down_link_info2_recv = FALSE, ue_cell_redirection_info_bad = TRUE, ue_stored_info_cell_selection_started = FALSE, ue_found_suitable_cell = FALSE, ue_monitoring_paging_channel = FALSE, ue_MIB_received = FALSE, ue_PRACH_preamble_sent = FALSE, ue_cell_barred = FALSE"]
 }

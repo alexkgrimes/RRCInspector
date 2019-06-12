@@ -1,5 +1,0 @@
-assuming that cell always has info (either good or bad)
-    -> because RRC redirection attack does not depend on the RF scan 
-
-    category0Allowed is not included in SystemInformationBlockType1
-
