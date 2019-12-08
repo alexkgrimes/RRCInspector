@@ -1,5 +1,9 @@
 # RRCInspector
 
+This work is a part of the research covered in the included paper, Formal Verification of 5G Protocols.
+
+Using the state machine, which represents a part of the 5G state machine as described in the 3GPP 5G Specifications, we are able to find a potential attack in the 5G system. This attack, named the _Cell Barred Attack_, shows that even with the new cellular system, attackers are able to spoof legitimate messages from malicious base stations.
+
 ### Dependencies:  
 *NuSMV*  
 Download binary here: http://nusmv.fbk.eu/bin/bin_download2-v2.cgi
